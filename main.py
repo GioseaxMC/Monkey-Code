@@ -11,7 +11,7 @@ import sys
 
 VERSION = "Alpha 1.0.0"
 
-FILE = sys.argv[1:]
+FILE = sys.argv[1:][0]
 FILE_CONTENT = []
 ACTUAL_POSITION = [0,0]
 CURSOR_POSITION = [0,0]
