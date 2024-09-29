@@ -7,10 +7,11 @@ import json
 from pprint import pprint as pp
 from datetime import datetime as dt
 import debug.debugger as db
+import sys
 
 VERSION = "Alpha 1.0.0"
 
-FILE = "file.cpp"
+FILE = sys.argv[1:]
 FILE_CONTENT = []
 ACTUAL_POSITION = [0,0]
 CURSOR_POSITION = [0,0]
