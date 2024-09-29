@@ -85,9 +85,14 @@ def handle_cursor():
 
     if offset and not moved:
         if c.ctrl():
+            CURSOR_POSITION[0] += offset
+            try:
+                _is_space_start = FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]].isspace()
+            except IndexError:
+                _is_space_start = 0
             while True:
                 CURSOR_POSITION[0] += offset
-                if CURSOR_POSITION[0] < 0 or CURSOR_POSITION[0] >= len(display[CURSOR_POSITION[1]]) or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]] == " ":
+                if CURSOR_POSITION[0] < 0 or CURSOR_POSITION[0] >= len(display[CURSOR_POSITION[1]]) or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]].isspace() != _is_space_start:
                     break
         else:
             CURSOR_POSITION[0] += offset
