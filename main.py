@@ -5,13 +5,17 @@ import text_utils.utils as u
 import text_utils.interactions as cl
 import json
 from pprint import pprint as pp
-from datetime import datetime as dt
 import debug.debugger as db
 import sys
+import os
 
 VERSION = "Alpha 1.0.0"
 
-FILE = sys.argv[1:][0]
+try:
+    FILE = sys.argv[1:][0]
+except:
+    FILE = "file.txt"
+file_extention = FILE.split(".")[-1].lower()
 FILE_CONTENT = []
 ACTUAL_POSITION = [0,0]
 CURSOR_POSITION = [0,0]
@@ -29,8 +33,16 @@ ctrl_zing = 0
 
 c.window(1290, 720, title = f"Text editor - {VERSION}", smallest_window_sizes=(1290, 720))
 
-with open("assets/config/colors.json", "r") as fp:
+with open("assets/config/default_theme.json", "r") as fp:
     colors = json.load(fp)
+markup_json = f"assets/config/markups/{file_extention}.json"
+
+if os.path.exists(markup_json):
+    with open(markup_json, "r") as fp:
+        [colors.append(color) for color in json.load(fp)]
+    with open("assets/config/markups/any.json", "r") as fp:
+        [colors.append(color) for color in json.load(fp)]
+
 with open("assets/config/interactions.json", "r") as fp:
     interactions = json.load(fp)
 
@@ -216,19 +228,28 @@ def handle_interactions():
     update_display()
     cl.draw_text(text_display_surfaces, color_surfaces_list, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize())
 
-FONT_SIZE = 35
+FONT_SIZE = 30
 FONT_WIDTH = (FONT_SIZE * 3) / 5
 font = pg.Font("assets/font.ttf", FONT_SIZE)
 font_small = pg.Font("assets/font.ttf", 20)
 CURSOR_POSITION = (0,0)
 
+# TODO make color based on colors.json
 bg = (25, 25, 25)
 
-with open(FILE, "r") as fp:
-    FILE_CONTENT = [line.replace("\n","") for line in fp.readlines()]
-    if not FILE_CONTENT:
-        FILE_CONTENT = ["",]
-    CURSOR_POSITION = [0,0]
+def open_file(file):
+    global FILE_CONTENT, CURSOR_POSITION
+    if os.path.exists(file):
+        with open(file, "r") as fp:
+            FILE_CONTENT = [line.replace("\n","") for line in fp.readlines()]
+            if not FILE_CONTENT:
+                FILE_CONTENT = ["",]
+            CURSOR_POSITION = [len(FILE_CONTENT[-1]),len(FILE_CONTENT)]
+    else:
+        with open(file, "w") as fp:
+            FILE_CONTENT = ["",]
+            CURSOR_POSITION = [0,0]
+open_file(FILE)
 
 init_colors()
 while c.loop(60, bg):
@@ -261,6 +282,7 @@ while c.loop(60, bg):
             *history[-32:],
             font = font_small,
         )
+        
     if DEBUG == 2:
         c.debug_list(
             "        - FILE",

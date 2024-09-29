@@ -1,12 +1,20 @@
 #include <iostream>
+#include <random>
 #define print printf
-#define END_SUCCESFUL 0
+#define EXIT 0;
+#define py auto
 
 using namespace std;
 
-int main(void){
-    
-    print("Hello, World!");
+// TODO killing myself
 
-    return END_SUCCESFUL;
+int main(void){
+
+    srand(455);
+
+    for(int i=0; i<256; i++){
+        print("ID %i Hello, World!\n", rand());
+    }
+    
+    return EXIT
 }

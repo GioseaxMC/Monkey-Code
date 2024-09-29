@@ -1,10 +1,5 @@
 [
     {
-        "keyword" : ".tld",
-        "word" : "~",
-        "active" : 1
-    },
-    {
         "keyword" : "    ",
         "word" : "|   "
     },
