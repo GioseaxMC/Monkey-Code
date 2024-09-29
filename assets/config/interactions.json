@@ -1,0 +1,19 @@
+[
+    {
+        "keyword" : ".tld",
+        "word" : "~",
+        "active" : 1
+    },
+    {
+        "keyword" : "    ",
+        "word" : "|   "
+    },
+    {
+        "keyword" : "\\r",
+        "word" : "\\\\r"
+    },
+    {
+        "keyword" : "\\n",
+        "word" : "\\\\n"
+    }
+]
