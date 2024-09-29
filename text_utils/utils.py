@@ -26,3 +26,4 @@ def get(list: list, idx):
         return list[idx]
     except IndexError:
         return None
+

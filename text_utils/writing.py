@@ -1,10 +1,13 @@
 import pygame_canvas as c
 from pygame_canvas import pygame as pg
 import text_utils.utils as s
+import text_utils.closings as close
 from copy import copy
 import clipboard as cb
 from pprint import pprint as pp
 from datetime import datetime as dt
+import debug.debugger as debug
+
 
 MOVEMENT = pg.K_UP, pg.K_DOWN, pg.K_LEFT, pg.K_RIGHT
 edits: list[dict] = []
@@ -127,10 +130,11 @@ def _del(file, cursor, selecting, sele):
         remove_selection(file, sele, cursor)
     else:
         print("deleting")
-        set_line(file, cursor[1], file[cursor[1]][:cursor[0]] + file[cursor[1]][min(cursor[0]+1, len(file[cursor[1]])):], cursor)
         if cursor[0] == len(file[cursor[1]]) and cursor[1] < len(file)-1:
             removed_row = pop_line(file, cursor[1]+1, cursor)
             add_to_line(file, cursor[1], removed_row, cursor)
+        else:
+            set_line(file, cursor[1], file[cursor[1]][:cursor[0]] + file[cursor[1]][min(cursor[0]+1, len(file[cursor[1]])):], cursor)
 
 def _tab(file, cursor, selecting, sele):
     print("tab")
@@ -212,7 +216,10 @@ def write(file: list[str], display: list[str], cursor: tuple[int, int], sele, se
             _del(file, cursor, selecting, sele)
         
         elif key == pg.K_RETURN:
-            _return(file, cursor, selecting, sele)
+            if "..cmd:>" in file[cursor[1]]:
+                debug.run(file[cursor[1]].replace("..cmd:>",""))
+            else:
+                _return(file, cursor, selecting, sele)
 
         elif key == pg.K_HOME:
             print("home")
@@ -248,6 +255,8 @@ def write(file: list[str], display: list[str], cursor: tuple[int, int], sele, se
                 if selecting[0]:
                     selecting[0] = 0
                     remove_selection(file, sele, cursor)
-                set_line(file, cursor[1], file[cursor[1]][:cursor[0]] + key_unicode + file[cursor[1]][cursor[0]:], cursor)
+                after = file[cursor[1]][cursor[0]:]
+                if not (len(after) and after[0] in "])}\"'" and key_unicode == after[0]):
+                    set_line(file, cursor[1], file[cursor[1]][:cursor[0]] + close.get_closing_char(key_unicode) + after, cursor)
                 cursor[0] += 1
                 

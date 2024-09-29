@@ -15,7 +15,6 @@ try:
     FILE = sys.argv[1:][0]
 except:
     FILE = "file.txt"
-file_extention = FILE.split(".")[-1].lower()
 FILE_CONTENT = []
 ACTUAL_POSITION = [0,0]
 CURSOR_POSITION = [0,0]
@@ -33,19 +32,6 @@ ctrl_zing = 0
 
 c.window(1290, 720, title = f"Text editor - {VERSION}", smallest_window_sizes=(1290, 720))
 
-with open("assets/config/default_theme.json", "r") as fp:
-    colors = json.load(fp)
-markup_json = f"assets/config/markups/{file_extention}.json"
-
-if os.path.exists(markup_json):
-    with open(markup_json, "r") as fp:
-        [colors.append(color) for color in json.load(fp)]
-    with open("assets/config/markups/any.json", "r") as fp:
-        [colors.append(color) for color in json.load(fp)]
-
-with open("assets/config/interactions.json", "r") as fp:
-    interactions = json.load(fp)
-
 pg.key.set_repeat(500, 30)
 
 def update_sizes():
@@ -55,7 +41,7 @@ def update_sizes():
     MARGINS = WIDTH*.15, 100
 update_sizes()
 
-def handle_cursor():
+def handle_cursor_movement():
     global ACTUAL_POSITION, CURSOR_POSITION, CURSOR_DISPLAY_POSITION, SELECTION, selecting
     #handle selection logic
     if c.key_clicked(pg.K_ESCAPE):
@@ -85,9 +71,14 @@ def handle_cursor():
 
     if offset and not moved:
         if c.ctrl():
+            CURSOR_POSITION[0] += offset
+            try:
+                _is_space_start = FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]].isspace()
+            except IndexError:
+                _is_space_start = 0
             while True:
                 CURSOR_POSITION[0] += offset
-                if CURSOR_POSITION[0] < 0 or CURSOR_POSITION[0] >= len(display[CURSOR_POSITION[1]]) or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]] == " ":
+                if CURSOR_POSITION[0] < 0 or CURSOR_POSITION[0] >= len(display[CURSOR_POSITION[1]]) or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]].isspace() != _is_space_start or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]] in "()[]{}.,-+/*<>":
                     break
         else:
             CURSOR_POSITION[0] += offset
@@ -165,11 +156,12 @@ def handle_cursor_position():
     DISPLAY_CAMERA_POSITION[1] += (CAMERA_POSITION[1] - DISPLAY_CAMERA_POSITION[1]) / 5
 
 def handle_writing():
-    global history, FILE_CONTENT, CURSOR_POSITION, previous_file, SELECTION, selecting, ctrl_zing
+    global history, FILE_CONTENT, CURSOR_POSITION, previous_file, SELECTION, selecting, ctrl_zing, FPS
     mutable = [selecting,]
-    history[:] = history[-32:]
+    # ctrlz
     if (ctrl_zing or (c.ctrl() and c.key_clicked("z"))) and len(history):
         ctrl_zing = 1
+        FPS = 0
         item = history.pop()
         match item["action"]:
             case "set":
@@ -179,9 +171,10 @@ def handle_writing():
             case "insert":
                 w.insert_line(FILE_CONTENT, item["line"], item["content"], CURSOR_POSITION, 0)
         CURSOR_POSITION = item["cursor"]
-
+        
         if (not len(history)) or history[-1].get("id") != item.get("id"):
             ctrl_zing = 0
+            FPS = 60
             # history.pop()
     else:
         w.write(FILE_CONTENT, display, CURSOR_POSITION, SELECTION, mutable)
@@ -204,12 +197,9 @@ def init_colors():
 
 def update_display():
     global display, colors, color_surfaces_list, text_display_surfaces, display_edits
-    if len(w.edits):
-        pp(w.edits)
     for ed_idx in range(len(w.edits)):
         edit = w.edits.pop(0)
         idx = edit["line"]
-        print("doing at", idx, "for type", edit["type"], "content", u.get(FILE_CONTENT, idx))
         match type := edit["type"]:
             case "pop" | "set":
                 display = cl.handle_interactions_at_row(idx, FILE_CONTENT, display, interactions, edit["type"])
@@ -228,7 +218,7 @@ def handle_interactions():
     update_display()
     cl.draw_text(text_display_surfaces, color_surfaces_list, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize())
 
-FONT_SIZE = 30
+FONT_SIZE = 27
 FONT_WIDTH = (FONT_SIZE * 3) / 5
 font = pg.Font("assets/font.ttf", FONT_SIZE)
 font_small = pg.Font("assets/font.ttf", 20)
@@ -238,7 +228,9 @@ CURSOR_POSITION = (0,0)
 bg = (25, 25, 25)
 
 def open_file(file):
-    global FILE_CONTENT, CURSOR_POSITION
+    global FILE_CONTENT, CURSOR_POSITION, FILE, file_extention, interactions, colors
+    FILE = file
+    file_extention = FILE.split(".")[-1].lower()
     if os.path.exists(file):
         with open(file, "r") as fp:
             FILE_CONTENT = [line.replace("\n","") for line in fp.readlines()]
@@ -246,19 +238,37 @@ def open_file(file):
                 FILE_CONTENT = ["",]
             CURSOR_POSITION = [len(FILE_CONTENT[-1]),len(FILE_CONTENT)]
     else:
+        os.mkdir(os.path.dirname(file))
         with open(file, "w") as fp:
             FILE_CONTENT = ["",]
             CURSOR_POSITION = [0,0]
+
+    markup_json = f"assets/config/markups/{file_extention}.json"
+
+    with open("assets/config/default_theme.json", "r") as fp:
+        colors = json.load(fp)
+
+    if os.path.exists(markup_json):
+        with open(markup_json, "r") as fp:
+            [colors.append(color) for color in json.load(fp)]
+        with open("assets/config/markups/any.json", "r") as fp:
+            [colors.append(color) for color in json.load(fp)]
+
+    with open("assets/config/interactions.json", "r") as fp:
+        interactions = json.load(fp)
+    init_colors()
+db.open_file = open_file
 open_file(FILE)
 
-init_colors()
-while c.loop(60, bg):
+FPS = 60
+while c.loop(FPS, bg):
+    c.set_title(f"Text editor - {VERSION} - {FILE}")
     if c.is_updating_sizes():
         update_sizes()
     if c.ctrl() and c.key_clicked("s"):
         u.save(FILE, FILE_CONTENT)
 
-    handle_cursor()
+    handle_cursor_movement()
     handle_writing()
     handle_interactions()
     c.text(
@@ -298,7 +308,19 @@ while c.loop(60, bg):
             position=(WIDTH*.5, 0)
         )
 
-    if c.key_clicked(pg.K_F5):
+    if c.ctrl() and c.key_clicked("o"):
+        CURSOR_POSITION = [7,0]
+        u.save(FILE, FILE_CONTENT)
+        FILE = "console"
+        FILE_CONTENT = ["..cmd:>",]
+        init_colors()
+    if FILE == "console" and not "..cmd:>" in FILE_CONTENT[0]:
+        CURSOR_POSITION = [7,0]
+        FILE_CONTENT = ["..cmd:>",]
+        init_colors()
+
+    if c.key_clicked(pg.K_F5) and c.key_pressed(pg.K_F5) and not FILE == "console":
+        print("pressed")
         u.save(FILE, FILE_CONTENT)
         db.debug(FILE)
 
