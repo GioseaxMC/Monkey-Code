@@ -22,35 +22,36 @@ def parse_command(command_string):
 
     return loc_command, arguments
 
-def call(*arguments, error: str = -1):
-    global cwd
-    try:
-        sb.call(" ".join(arguments), cwd=cwd)
+def call(*arguments, error: str = -1, _cwd=cwd):
+    # try:
+        print(" ".join(arguments), "cwd:", f'"{_cwd}"')
+        sb.call(" ".join(arguments), cwd=_cwd)
         return True
-    except Exception as e:
-        if error == -1:
-            print(f"Error: {e}")
-        else:
-            print(error)
-        return False
+    # except Exception as e:
+    #     if error == -1:
+    #         print(f"Error: {e}")
+    #     else:
+    #         print(error)
+    #     return False
 
 def debug(file_name):
-    name = file_name.split(".")
-    extention = "".join(name[-1:])
-    name = "".join(name[:-1])
-    print(f"Debugging: {name}.{extention}")
+    file_name = file_name.replace("\"","")
+    _, extention = os.path.splitext(file_name)
+    name = os.path.basename(file_name)
+    name, _ = os.path.splitext(name)
+    print(f"Debugging: {name}{extention}")
     match extention:
-        case "cpp":
+        case ".cpp":
             try:
                 os.remove(name+".exe")
             except FileNotFoundError:
                 ...
-            if call("g++", file_name, "-o", name):
-                call(f".\\{name}.exe", error="Compilation failed.")
-        case "py":
-            call("python", file_name)
+            if call("g++", "\""+file_name+"\"", "-o", name, _cwd=os.getcwd()):
+                call(f".\\{name}.exe", error="Compilation failed.", _cwd=os.getcwd())
+        case ".py":
+            call("python", "\""+file_name+"\"", _cwd=os.getcwd())
         case "undefined":
-            call(file_name)
+            call("\""+file_name+"\"")
 
 def run(command):
     cmd, args = parse_command(command)

@@ -18,7 +18,7 @@ def check_tokens(file, file2):
 
 def save(file, file_content):
     with open(file, "w") as fp:
-        fp.write("\n".join(file_content).replace("\r", ""))
+        fp.write("\n".join(file_content)) # .replace("\r", "")
     print("Saved suffessfully.")
 
 def get(list: list, idx):

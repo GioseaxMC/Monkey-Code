@@ -5,7 +5,8 @@
     },
     {
         "keyword" : "\\r",
-        "word" : "\\\\r"
+        "word" : "",
+        "active" : 1
     },
     {
         "keyword" : "\\n",

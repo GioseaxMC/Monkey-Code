@@ -215,7 +215,7 @@ def write(file: list[str], display: list[str], cursor: tuple[int, int], sele, se
         elif key == pg.K_DELETE:
             _del(file, cursor, selecting, sele)
         
-        elif key == pg.K_RETURN:
+        elif key == pg.K_RETURN and c.key_pressed(pg.K_RETURN):
             if "..cmd:>" in file[cursor[1]]:
                 debug.run(file[cursor[1]].replace("..cmd:>",""))
             else:

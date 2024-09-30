@@ -11,10 +11,13 @@ import os
 
 VERSION = "Alpha 1.0.0"
 
+print(__file__)
+
 try:
     FILE = sys.argv[1:][0]
 except:
-    FILE = "file.txt"
+    FILE = ".\\file.txt"
+cwd = os.getcwd()
 FILE_CONTENT = []
 ACTUAL_POSITION = [0,0]
 CURSOR_POSITION = [0,0]
@@ -29,6 +32,10 @@ selecting = 0
 display_edits: list = []
 edits = w.edits
 ctrl_zing = 0
+markups_path = f"{os.path.dirname(__file__)}/assets/config/markups"
+config_path = f"{os.path.dirname(__file__)}/assets/config"
+assets_path = f"{os.path.dirname(__file__)}/assets"
+
 
 c.window(1290, 720, title = f"Text editor - {VERSION}", smallest_window_sizes=(1290, 720))
 
@@ -171,7 +178,7 @@ def handle_writing():
             case "insert":
                 w.insert_line(FILE_CONTENT, item["line"], item["content"], CURSOR_POSITION, 0)
         CURSOR_POSITION = item["cursor"]
-        
+
         if (not len(history)) or history[-1].get("id") != item.get("id"):
             ctrl_zing = 0
             FPS = 60
@@ -218,10 +225,10 @@ def handle_interactions():
     update_display()
     cl.draw_text(text_display_surfaces, color_surfaces_list, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize())
 
-FONT_SIZE = 27
+FONT_SIZE = 30
 FONT_WIDTH = (FONT_SIZE * 3) / 5
-font = pg.Font("assets/font.ttf", FONT_SIZE)
-font_small = pg.Font("assets/font.ttf", 20)
+font = pg.Font(f"{assets_path}/font.ttf", FONT_SIZE)
+font_small = pg.Font(f"{assets_path}/font.ttf", 20)
 CURSOR_POSITION = (0,0)
 
 # TODO make color based on colors.json
@@ -243,19 +250,23 @@ def open_file(file):
             FILE_CONTENT = ["",]
             CURSOR_POSITION = [0,0]
 
-    markup_json = f"assets/config/markups/{file_extention}.json"
+    markup_json = f"{markups_path}/{file_extention}.json"
 
-    with open("assets/config/default_theme.json", "r") as fp:
+    with open(f"{config_path}/default_theme.json", "r") as fp:
         colors = json.load(fp)
 
     if os.path.exists(markup_json):
         with open(markup_json, "r") as fp:
             [colors.append(color) for color in json.load(fp)]
-        with open("assets/config/markups/any.json", "r") as fp:
+        with open(f"{markups_path}/any.json", "r") as fp:
             [colors.append(color) for color in json.load(fp)]
 
-    with open("assets/config/interactions.json", "r") as fp:
+    with open(f"{config_path}/interactions.json", "r") as fp:
         interactions = json.load(fp)
+    try:
+        os.chdir(os.path.dirname(file))
+    except OSError:
+        print("not opening")
     init_colors()
 db.open_file = open_file
 open_file(FILE)
@@ -292,18 +303,18 @@ while c.loop(FPS, bg):
             *history[-32:],
             font = font_small,
         )
-        
+
     if DEBUG == 2:
         c.debug_list(
             "        - FILE",
-            *[line.replace(" ", ".") for line in FILE_CONTENT],
+            *["\""+line.replace(" ", ".")+"\"" for line in FILE_CONTENT],
             font = font_small,
             position=(WIDTH*.5, 0),
             color="cyan"
         )
         c.debug_list(
             "DISPLAY",
-            *[line.replace(" ", ".") for line in display],
+            *["\""+line.replace(" ", ".")+"\"" for line in display],
             font = font_small,
             position=(WIDTH*.5, 0)
         )
