@@ -16,6 +16,9 @@ def check_tokens(file, file2):
             condition = condition or len(x) != len(y)
     return condition
 
+def check_bounds(list, idx):
+    return (0 <= idx < len(list))
+
 def save(file, file_content):
     with open(file, "w") as fp:
         fp.write("\n".join(file_content)) # .replace("\r", "")

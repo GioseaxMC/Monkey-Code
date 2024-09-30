@@ -65,6 +65,6 @@ def run(command):
         case "exit":
             exit(0)
         case _:
-            debug(cmd)
+            open_file(cmd)
 
 

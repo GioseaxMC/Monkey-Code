@@ -124,6 +124,24 @@ def _return(file, cursor, selecting, sele):
     set_line(file, cursor[1], before, cursor)
     cursor[1] += 1
 
+def move(file, cursor, selecting, sele: list, offset):
+    sele = sorted(sele, key=lambda x: x[1])
+    if selecting:
+        if not (s.check_bounds(file, sele[max(0, offset)][1]+offset) and s.check_bounds(file, sele[max(0, -offset)][1])):
+            return
+        to_swap = pop_line(file, sele[max(0, offset)][1]+offset, cursor)
+        cursor[1] += offset
+        for selection in sele:
+            selection[1] += offset
+        insert_line(file, sele[max(0, -offset)][1]-offset, to_swap, cursor)
+    else:
+        if not (s.check_bounds(file, cursor[1]+offset) and s.check_bounds(file, cursor[1])):
+            return
+        to_swap = pop_line(file, cursor[1]+offset, cursor)
+        cursor[1] += offset
+        insert_line(file, cursor[1]-offset, to_swap, cursor)
+
+
 def _del(file, cursor, selecting, sele):
     if selecting[0]:
         selecting[0] = 1

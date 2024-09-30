@@ -59,7 +59,7 @@ def handle_cursor_movement():
         if SELECTION[0] == SELECTION[1]:
             selecting = 0
         if selecting:
-            if c.shift():
+            if c.shift() or c.key_pressed(pg.K_LALT):
                 ...
             else:
                 if SELECTION[1][1] - SELECTION[0][1]:
@@ -107,21 +107,26 @@ def handle_cursor_movement():
         CURSOR_POSITION[0] = len(display[CURSOR_POSITION[1]])
 
     # move cursor y
-    CURSOR_POSITION[1] += c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP) - (c.get_wheel() * (not c.shift()))
-    if CURSOR_POSITION[1] >= len(display):
-        CURSOR_POSITION[0] = len(display[-1])
-    if CURSOR_POSITION[1] < 0:
-        CURSOR_POSITION[0] = 0
-    CURSOR_POSITION[1] = min(max(CURSOR_POSITION[1], 0), len(display)-1)
-    CURSOR_POSITION[0] = min(max(CURSOR_POSITION[0], 0), len(display[CURSOR_POSITION[1]]))
+    if c.key_pressed(pg.K_LALT):
+        w.move(FILE_CONTENT, CURSOR_POSITION, selecting, SELECTION, (c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP)))
+    else:
+        CURSOR_POSITION[1] += c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP) - (c.get_wheel() * (not c.shift()))
+        if CURSOR_POSITION[1] >= len(display):
+            CURSOR_POSITION[0] = len(display[-1])
+        if CURSOR_POSITION[1] < 0:
+            CURSOR_POSITION[0] = 0
+        CURSOR_POSITION[1] = min(max(CURSOR_POSITION[1], 0), len(display)-1)
+        CURSOR_POSITION[0] = min(max(CURSOR_POSITION[0], 0), len(display[CURSOR_POSITION[1]]))
 
     #smooth movement
     ACTUAL_POSITION = [i*j for i, j in zip(CURSOR_POSITION, [FONT_WIDTH, font.get_linesize()])]
     CURSOR_DISPLAY_POSITION[0] += (ACTUAL_POSITION[0] - CURSOR_DISPLAY_POSITION[0]) / 3
     CURSOR_DISPLAY_POSITION[1] += (ACTUAL_POSITION[1] - CURSOR_DISPLAY_POSITION[1]) / 3
-
     if c.shift() and selecting:
         SELECTION[1] = CURSOR_POSITION.copy()
+    handle_cursor_position()
+
+def draw_selection():
     if selecting:
         _color = [40,40,40]
         _size_boost = 22
@@ -148,7 +153,6 @@ def handle_cursor_movement():
                 c.blit(surface, ((sorted_sel[0][0])*FONT_WIDTH+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], SELECTION[0][1]*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1]))
         except IndexError:
             print("waiting for threads...")
-    handle_cursor_position()
 
 def handle_cursor_position():
     x = CURSOR_DISPLAY_POSITION[0] - CAMERA_POSITION[0] - WIDTH*.5 + WIDTH*.2 # adding moves to the left
@@ -223,6 +227,7 @@ w.update_display = update_display
 
 def handle_interactions():
     update_display()
+    draw_selection()
     cl.draw_text(text_display_surfaces, color_surfaces_list, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize())
 
 FONT_SIZE = 30
@@ -302,8 +307,8 @@ while c.loop(FPS, bg):
             f"Color buffers: {len(colored)}",
             f"Cursor X,Y : {CURSOR_POSITION}",
             f"Selection : {SELECTION} - {selecting}",
-            f"history:",
-            *history[-32:],
+            # f"history:",
+            # *history[-32:],
             font = font_small,
         )
 
