@@ -1,4 +1,5 @@
 # Monkey Editor
+
 A Monkeytype inspired file and code editor
 
 ## Usage
