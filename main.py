@@ -10,7 +10,7 @@ import sys
 import os
 
 
-VERSION = "Alpha 1.0.0"
+VERSION = "Alpha 1.0.1"
 
 print(__file__)
 
