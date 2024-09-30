@@ -1,6 +1,5 @@
-/__pycache__
-/build
-/dist
+__pycache__/
+build/
 *.cpp
 dummy.py
-./*.exe
+*.spec

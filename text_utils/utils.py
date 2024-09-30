@@ -20,6 +20,8 @@ def check_bounds(list, idx):
     return (0 <= idx < len(list))
 
 def save(file, file_content):
+    if file == "console":
+        return
     with open(file, "w") as fp:
         fp.write("\n".join(file_content)) # .replace("\r", "")
     print("Saved suffessfully.")

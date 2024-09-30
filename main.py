@@ -16,7 +16,7 @@ print(__file__)
 try:
     FILE = sys.argv[1:][0]
 except:
-    FILE = ".\\file.txt"
+    FILE = "./file.txt"
 cwd = os.getcwd()
 FILE_CONTENT = []
 ACTUAL_POSITION = [0,0]
@@ -32,12 +32,16 @@ selecting = 0
 display_edits: list = []
 edits = w.edits
 ctrl_zing = 0
-markups_path = f"{os.path.dirname(__file__)}/assets/config/markups"
-config_path = f"{os.path.dirname(__file__)}/assets/config"
-assets_path = f"{os.path.dirname(__file__)}/assets"
+if getattr(sys, 'frozen', False):
+    app_path = sys.executable
+else:
+    app_path = os.path.abspath(__file__)
+markups_path = f"{os.path.dirname(app_path)}/assets/config/markups"
+config_path = f"{os.path.dirname(app_path)}/assets/config"
+assets_path = f"{os.path.dirname(app_path)}/assets"
 
 
-c.window(1290, 720, title = f"Text editor - {VERSION}", smallest_window_sizes=(1290, 720))
+c.window(1290, 720, title = f"Text editor - {VERSION}", smallest_window_sizes=(1290, 720), icon=f"{assets_path}/icon.png")
 
 pg.key.set_repeat(500, 30)
 
@@ -281,7 +285,7 @@ open_file(FILE)
 
 FPS = 60
 while c.loop(FPS, bg):
-    c.set_title(f"Text editor - {VERSION} - {FILE}")
+    c.set_title(f"Monkey Editor - {VERSION} - {FILE}")
     if c.is_updating_sizes():
         update_sizes()
     if c.ctrl() and c.key_clicked("s"):
