@@ -1,0 +1,30 @@
+[
+    {
+        "keyword" : "\\b(function|let|const|var|return|if|else|for|while|do|switch|case|break|continue|try|catch|finally|throw|new|typeof|instanceof|this|class|extends|super)\\b",
+        "color" : [100, 220, 220]
+    },
+    {
+        "keyword" : "\\b(document|window|console|Math|JSON|Array|Object|String|Number|Boolean|Promise|Set|Map|Date)\\b",
+        "color" : [220, 100, 220]
+    },
+    {
+        "keyword" : "\\\"[^\\\"]*\\\"|\\'[^\\']*\\'|`[^`]*`",
+        "color" : [220, 220, 100]
+    },
+    {
+        "keyword" : "\\b(true|false|null|undefined|NaN|Infinity)\\b",
+        "color" : [100, 220, 100]
+    },
+    {
+        "keyword" : "[(){}[\\]]",
+        "color" : [230, 230, 0]
+    },
+    {
+        "keyword" : "\\d+",
+        "color" : [100, 100, 220]
+    },
+    {
+        "keyword" : "//.*|/\\*.*?\\*/",
+        "color" : [100, 100, 100]
+    }
+]

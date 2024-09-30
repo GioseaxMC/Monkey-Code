@@ -1,0 +1,26 @@
+[
+    {
+        "keyword" : "<\\/?\\w+>",
+        "color" : [0, 100, 200]
+    },
+    {
+        "keyword" : "\\b(html|head|body|div|span|h[1-6]|p|a|img|script|style|meta|link)\\b",
+        "color" : [100, 220, 100]
+    },
+    {
+        "keyword" : "\\b(id|class|href|src|alt|title|type|rel|name|content|charset|async|defer)\\b",
+        "color" : [220, 100, 220]
+    },
+    {
+        "keyword" : "\\\"[^\\\"]*\\\"",
+        "color" : [220, 220, 100]
+    },
+    {
+        "keyword" : "=|<|>|\\/",
+        "color" : [230, 230, 0]
+    },
+    {
+        "keyword" : "<!--.*?-->",
+        "color" : [100, 100, 100]
+    }
+]

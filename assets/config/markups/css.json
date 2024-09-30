@@ -1,0 +1,26 @@
+[
+    {
+        "keyword" : "\\b(color|background|font-size|width|height|border|padding|margin|display|position|top|left|right|bottom|flex|grid|align-items|justify-content|animation)\\b",
+        "color" : [100, 220, 220]
+    },
+    {
+        "keyword" : "\\bpx|em|rem|%|vh|vw|fr\\b",
+        "color" : [220, 100, 220]
+    },
+    {
+        "keyword" : "#[0-9a-fA-F]{3,6}",
+        "color" : [100, 220, 100]
+    },
+    {
+        "keyword" : "[{}:;]",
+        "color" : [230, 230, 0]
+    },
+    {
+        "keyword" : "/\\*.*?\\*/",
+        "color" : [100, 100, 100]
+    },
+    {
+        "keyword" : "\"[^\"]*\"",
+        "color" : [220, 220, 100]
+    }
+]
