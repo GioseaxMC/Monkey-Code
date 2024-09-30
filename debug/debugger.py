@@ -1,6 +1,7 @@
 import subprocess as sb
 import shlex
 import os
+from webbrowser import open as open_html
 
 open_file = lambda x: x
 cwd = os.getcwd()
@@ -50,6 +51,8 @@ def debug(file_name):
                 call(f".\\{name}.exe", error="Compilation failed.", _cwd=os.getcwd())
         case ".py":
             call("python", "\""+file_name+"\"", _cwd=os.getcwd())
+        case ".html":
+            open_html(f"file://{os.getcwd()+"/"+file_name}")
         case "undefined":
             call("\""+file_name+"\"")
 

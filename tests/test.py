@@ -1,6 +1,2 @@
-import pygame_canvas as c
-
-c.window()
-
-while c.loop(60):
-    ...
+for i in range(256):
+    print(f"ID {i} Hello World!")
