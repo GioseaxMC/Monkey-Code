@@ -3,4 +3,3 @@ build/
 *.cpp
 dummy.py
 *.spec
-build.bat
