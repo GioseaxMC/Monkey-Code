@@ -13,7 +13,7 @@ To open the program (after following the download instructions) you just need to
 
 Click the button below to download the file:
 
-[![Download File](https://img.shields.io/badge/Download-Your%20File%20Name-brightgreen)](https://raw.githubusercontent.com/yourusername/yourrepository/branch/path/to/yourfile.ext)
+[![Download File](https://img.shields.io/badge/Download-Monkey%20Editor-brightgreen)](https://github.com/GioseaxMC/Monkey-Editor/raw/refs/heads/main/distribution/Monkey%20Editor.zip)
 
 Instructions:
 - Extract the files in your desired directory
