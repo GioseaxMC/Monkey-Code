@@ -23,16 +23,16 @@ def parse_command(command_string):
     return loc_command, arguments
 
 def call(*arguments, error: str = -1, _cwd=cwd):
-    # try:
+    try:
         print(" ".join(arguments), "cwd:", f'"{_cwd}"')
         sb.call(" ".join(arguments), cwd=_cwd)
         return True
-    # except Exception as e:
-    #     if error == -1:
-    #         print(f"Error: {e}")
-    #     else:
-    #         print(error)
-    #     return False
+    except Exception as e:
+        if error == -1:
+            print(f"Error: {e}")
+        else:
+            print(error)
+        return False
 
 def debug(file_name):
     file_name = file_name.replace("\"","")

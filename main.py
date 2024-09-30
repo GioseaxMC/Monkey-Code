@@ -245,7 +245,10 @@ def open_file(file):
                 FILE_CONTENT = ["",]
             CURSOR_POSITION = [len(FILE_CONTENT[-1]),len(FILE_CONTENT)]
     else:
-        os.mkdir(os.path.dirname(file))
+        try:
+            os.mkdir(os.path.dirname(file))
+        except (FileExistsError, FileNotFoundError) as e:
+            print(f"source exists: {e}")
         with open(file, "w") as fp:
             FILE_CONTENT = ["",]
             CURSOR_POSITION = [0,0]
@@ -256,9 +259,9 @@ def open_file(file):
         colors = json.load(fp)
 
     if os.path.exists(markup_json):
-        with open(markup_json, "r") as fp:
-            [colors.append(color) for color in json.load(fp)]
         with open(f"{markups_path}/any.json", "r") as fp:
+            [colors.append(color) for color in json.load(fp)]
+        with open(markup_json, "r") as fp:
             [colors.append(color) for color in json.load(fp)]
 
     with open(f"{config_path}/interactions.json", "r") as fp:
