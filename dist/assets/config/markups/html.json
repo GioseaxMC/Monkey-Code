@@ -1,9 +1,5 @@
 [
     {
-        "keyword" : "<\\/?\\w+>",
-        "color" : [0, 100, 200]
-    },
-    {
         "keyword" : "\\b(html|head|body|div|span|h[1-6]|p|a|img|script|style|meta|link)\\b",
         "color" : [100, 220, 100]
     },
