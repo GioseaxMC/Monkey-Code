@@ -5,7 +5,7 @@ def get_closing_char(opening_char):
         '[': '[]',
         '(': '()',
         '"': '""',
-        "'": "''"
+        "<": "<>"
     }
     
     # Return the corresponding closing character or None if the character is not recognized

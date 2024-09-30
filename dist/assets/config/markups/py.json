@@ -1,6 +1,10 @@
 [
     {
-        "keyword" : "\\b(int|float|bool|str|chr|void|f(?=\\\"))\\b",
+        "keyword" : "\\b(int|float|bool|str|chr|void)\\b",
+        "color" : [100,220,220]
+    },
+    {
+        "keyword" : "f(?=\\\")",
         "color" : [100,220,220]
     },
     {
@@ -24,15 +28,15 @@
         "color" : [100,100,100]
     },
     {
-        "color" : [220,220,100],
-        "keyword" : "\".*\""
-    },
-    {
         "keyword" : "=|-|\\+|\\*|/|<|>|\\b(False|None|True|and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield|async|await)\\b",
         "color" : [220,100,220]
     },
     {
-        "keyword" : "\\b\\d\\b",
+        "color" : [220,220,100],
+        "keyword" : "\".*\""
+    },
+    {
+        "keyword" : "\\d",
         "color" : [100,100,220]
     },
     {

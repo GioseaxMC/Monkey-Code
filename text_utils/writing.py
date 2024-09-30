@@ -141,7 +141,6 @@ def move(file, cursor, selecting, sele: list, offset):
         cursor[1] += offset
         insert_line(file, cursor[1]-offset, to_swap, cursor)
 
-
 def _del(file, cursor, selecting, sele):
     if selecting[0]:
         selecting[0] = 1
@@ -199,7 +198,7 @@ def _backspace(file, cursor, selecting, sele):
                     before = before[:-1]
                     cursor[0] -= 1
                     if before:
-                        if before[-1] == " ":
+                        if before[-1] in " ()[]{}.,-+/*<>":
                             break
                     else:
                         break
@@ -234,6 +233,9 @@ def write(file: list[str], display: list[str], cursor: tuple[int, int], sele, se
             _del(file, cursor, selecting, sele)
         
         elif key == pg.K_RETURN and c.key_pressed(pg.K_RETURN):
+            if selecting[0]:
+                remove_selection(file, sele, cursor)
+                selecting[0] = 0
             if "..cmd:>" in file[cursor[1]]:
                 debug.run(file[cursor[1]].replace("..cmd:>",""))
             else:
