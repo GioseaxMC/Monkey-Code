@@ -1,13 +1,5 @@
 from pprint import pprint as pp
-
-[
-    [
-        "goerijgoeri oijoijo oijoij oij oijoij"
-    ],
-    [
-        "oijerg oij oijoijo oij"
-    ]
-]
+import os
 
 def check_tokens(file, file2):
     condition = 0
@@ -20,6 +12,7 @@ def check_bounds(list, idx):
     return (0 <= idx < len(list))
 
 def save(file, file_content):
+    print(os.getcwd())
     if file == "console":
         return
     with open(file, "w") as fp:

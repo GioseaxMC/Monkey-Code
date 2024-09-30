@@ -18,7 +18,6 @@ try:
     FILE = sys.argv[1:][0]
 except:
     FILE = "./file.txt"
-cwd = os.getcwd()
 FILE_CONTENT = []
 ACTUAL_POSITION = [0,0]
 CURSOR_POSITION = [0,0]
@@ -38,6 +37,8 @@ if getattr(sys, 'frozen', False):
     sys.stdout = open(os.devnull, 'w')
 else:
     app_path = os.path.abspath(__file__)
+print("CURRENT WD:", os.path.dirname(app_path))
+# os.chdir(os.path.dirname(app_path))
 markups_path = f"{os.path.dirname(app_path)}/assets/config/markups"
 config_path = f"{os.path.dirname(app_path)}/assets/config"
 assets_path = f"{os.path.dirname(app_path)}/assets"
@@ -279,7 +280,9 @@ def open_file(file):
         interactions = json.load(fp)
     try:
         os.chdir(os.path.dirname(file))
+        FILE = os.path.basename(file)
     except OSError:
+        FILE = os.path.basename(file)
         print("not opening")
     init_colors()
 db.open_file = open_file
