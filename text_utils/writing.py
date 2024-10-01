@@ -187,11 +187,13 @@ def _backspace(file, cursor, selecting, sele):
                     before = ""
                     cursor[0] = 0
                 while True:
-                    before = before[:-1]
-                    cursor[0] -= 1
                     if before:
+                        before = before[:-1]
+                        cursor[0] -= 1
                         if before[-1] in " ()[]{}.,-+/*<>":
                             break
+                        else:
+                            ...
                     else:
                         break
                 set_line(file, cursor[1], before+after, cursor)

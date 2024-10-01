@@ -9,11 +9,10 @@
     },
     {
         "color" : [220,220,100],
-        "keyword" : "\".*\""
+        "keyword" : "\"([^\"]*)\""
     },
     {
-        "keyword" : "\\b(int|float|double|bool|string|char|void)\\b"
-        ,
+        "keyword" : "\\b(int|float|double|bool|string|char|void)\\b",
         "color" : [100,220,220]
     },
     {

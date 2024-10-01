@@ -28,7 +28,6 @@ SELECTION = [[0,0], [0,0]]
 selecting = 0
 display_edits: list = []
 edits = w.edits
-ctrl_zing = 0
 if getattr(sys, 'frozen', False):
     app_path = sys.executable
     if os.getcwd() == os.path.dirname(app_path):
@@ -179,26 +178,25 @@ def handle_cursor_position():
     DISPLAY_CAMERA_POSITION[1] += (CAMERA_POSITION[1] - DISPLAY_CAMERA_POSITION[1]) / 5
 
 def handle_writing():
-    global history, FILE_CONTENT, CURSOR_POSITION, previous_file, SELECTION, selecting, ctrl_zing, FPS
+    global history, FILE_CONTENT, CURSOR_POSITION, previous_file, SELECTION, selecting
     mutable = [selecting,]
     # ctrlz
-    if (ctrl_zing or (c.ctrl() and c.key_clicked("z"))) and len(history):
-        ctrl_zing = 1
-        FPS = 0
-        item = history.pop()
-        match item["action"]:
-            case "set":
-                w.set_line(FILE_CONTENT, item["line"], item["content"], CURSOR_POSITION, 0)
-            case "pop":
-                w.pop_line(FILE_CONTENT, item["line"], CURSOR_POSITION, 0)
-            case "insert":
-                w.insert_line(FILE_CONTENT, item["line"], item["content"], CURSOR_POSITION, 0)
-        CURSOR_POSITION = item["cursor"]
+    if c.ctrl() and c.key_clicked("z") and len(history):
+        while 1:
+            item = history.pop()
+            match item["action"]:
+                case "set":
+                    w.set_line(FILE_CONTENT, item["line"], item["content"], CURSOR_POSITION, 0)
+                case "pop":
+                    w.pop_line(FILE_CONTENT, item["line"], CURSOR_POSITION, 0)
+                case "insert":
+                    w.insert_line(FILE_CONTENT, item["line"], item["content"], CURSOR_POSITION, 0)
+            update_display()
+            CURSOR_POSITION = item["cursor"]
 
-        if (not len(history)) or history[-1].get("id") != item.get("id"):
-            ctrl_zing = 0
-            FPS = 60
-            # history.pop()
+
+            if (not len(history)) or history[-1].get("id") != item.get("id"):
+                break
     else:
         w.write(FILE_CONTENT, display, CURSOR_POSITION, SELECTION, mutable, FILE)
         selecting = mutable[0]
@@ -338,6 +336,12 @@ try:
                 # f"history:",
                 # *history[-32:],
                 font = font_small,
+            )
+            c.text(
+                CARET,
+                (ACTUAL_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], ACTUAL_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]),
+                color = "white",
+                font = font,
             )
 
         if DEBUG == 2:
