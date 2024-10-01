@@ -8,6 +8,10 @@
         "color" : [100,100,100]
     },
     {
+        "color" : [220,220,100],
+        "keyword" : "\".*\""
+    },
+    {
         "keyword" : "\\b(int|float|double|bool|string|char|void)\\b"
         ,
         "color" : [100,220,220]
@@ -23,10 +27,6 @@
     {
         "keyword" : "[(){}[\\]]",
         "color" : [230,230,0]
-    },
-    {
-        "color" : [220,220,100],
-        "keyword" : "\".*\""
     },
     {
         "keyword" : "\\b\\d+\\b",
