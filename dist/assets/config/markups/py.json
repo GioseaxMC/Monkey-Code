@@ -1,5 +1,9 @@
 [
     {
+        "keyword" : "#.*",
+        "color" : [100,100,100]
+    },
+    {
         "keyword" : "\\b(int|float|bool|str|chr|void)\\b",
         "color" : [100,220,220]
     },
@@ -24,10 +28,6 @@
         "color" : [220,100,220]
     },
     {
-        "keyword" : "#.*",
-        "color" : [100,100,100]
-    },
-    {
         "keyword" : "=|-|\\+|\\*|/|<|>|\\b(False|None|True|and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield|async|await)\\b",
         "color" : [220,100,220]
     },
@@ -36,7 +36,7 @@
         "keyword" : "\".*\""
     },
     {
-        "keyword" : "\\d",
+        "keyword" : "\\b\\d+\\b",
         "color" : [100,100,220]
     },
     {

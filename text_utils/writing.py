@@ -106,14 +106,11 @@ def copy_selection(file: list, sele):
     cb.copy(copy_string)
 
 def _return(file, cursor, selecting, sele):
-    print("entering")
     before = file[cursor[1]][:cursor[0]]
     tabs = 0
     temp_before = before
     while temp_before[:4].isspace():
-        print("tabbing")
         tabs += 1
-        print(temp_before)
         temp_before = temp_before[4:]
     del temp_before
     if before:
@@ -146,7 +143,6 @@ def _del(file, cursor, selecting, sele):
         selecting[0] = 1
         remove_selection(file, sele, cursor)
     else:
-        print("deleting")
         if cursor[0] == len(file[cursor[1]]) and cursor[1] < len(file)-1:
             removed_row = pop_line(file, cursor[1]+1, cursor)
             add_to_line(file, cursor[1], removed_row, cursor)
@@ -154,12 +150,10 @@ def _del(file, cursor, selecting, sele):
             set_line(file, cursor[1], file[cursor[1]][:cursor[0]] + file[cursor[1]][min(cursor[0]+1, len(file[cursor[1]])):], cursor)
 
 def _tab(file, cursor, selecting, sele):
-    print("tab")
     set_line(file, cursor[1], file[cursor[1]][:cursor[0]] + "    " + file[cursor[1]][cursor[0]:], cursor)
     cursor[0] += 4
 
 def _paste(file, cursor, selecting, sele):
-    print("past")
     if selecting[0]:
         remove_selection(file, sele, cursor)
         selecting[0] = 0
@@ -176,14 +170,12 @@ def _paste(file, cursor, selecting, sele):
     add_to_line(file, cursor[1], "", cursor)
 
 def _cut(file, cursor, selecting, sele):
-    print("cutting")
     if selecting[0]:
         selecting[0] = 0
         copy_selection(file, sele)
         remove_selection(file, sele, cursor)
 
 def _backspace(file, cursor, selecting, sele):
-    print("backspacing")
     if selecting[0]:
         selecting[0] = 0
         remove_selection(file, sele, cursor)
@@ -242,13 +234,11 @@ def write(file: list[str], display: list[str], cursor: tuple[int, int], sele, se
                 _return(file, cursor, selecting, sele)
 
         elif key == pg.K_HOME:
-            print("home")
             if c.ctrl():
                 cursor[1] = 0
             cursor[0] = 0
 
         elif key == pg.K_END:
-            print("end")
             if c.ctrl():
                 cursor[1] = len(display)-1
             cursor[0] = len(display[cursor[1]])
@@ -269,9 +259,9 @@ def write(file: list[str], display: list[str], cursor: tuple[int, int], sele, se
             copy_selection(file, sele)
 
         elif (key_unicode := c.get_clicked_unicode()) and not c.ctrl():
-            print(f"uncaught key {key}" + (f" : {key_unicode}" if key_unicode else "-"))
+            # print(f"uncaught key {key}" + (f" : {key_unicode}" if key_unicode else "-"))
             if key_unicode and key_unicode.isprintable():
-                print("writing")
+                # print("writing")
                 if selecting[0]:
                     selecting[0] = 0
                     remove_selection(file, sele, cursor)

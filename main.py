@@ -9,9 +9,7 @@ import debug.debugger as db
 import sys
 import os
 
-VERSION = "Alpha 1.0.3"
-
-print(__file__)
+NAME = "Monkey Code"
 
 try:
     FILE = sys.argv[1:][0]
@@ -38,16 +36,20 @@ if getattr(sys, 'frozen', False):
         print("CURRENT WD:", os.path.dirname(app_path))
         print(f"Added command \"monkey\" to path")
         exit()
-    sys.stdout = open(os.devnull, 'w')
+    # sys.stdout = open(os.devnull, 'w')
 else:
     app_path = os.path.abspath(__file__)
     print("CURRENT WD:", os.path.dirname(app_path))
     
-markups_path = f"{os.path.dirname(app_path)}/assets/config/markups"
-config_path = f"{os.path.dirname(app_path)}/assets/config"
-assets_path = f"{os.path.dirname(app_path)}/assets"
+db.markups_path = f"{os.path.dirname(app_path)}/assets/config/markups"
+db.config_path = f"{os.path.dirname(app_path)}/assets/config"
+db.assets_path = f"{os.path.dirname(app_path)}/assets"
 
-c.window(1290, 720, title = f"Text editor - {VERSION}", smallest_window_sizes=(1290, 720), icon=f"{assets_path}/icon.png")
+with open(f"{db.config_path}/info.txt", "r") as fp:
+    info = fp.read().split("\n")
+    VERSION = info[0]
+
+c.window(1290, 720, title = f"{NAME} - loading", smallest_window_sizes=(1290, 720), icon=f"{db.assets_path}/icon.png")
 
 pg.key.set_repeat(500, 30)
 
@@ -240,18 +242,26 @@ def handle_interactions():
     draw_selection()
     cl.draw_text(text_display_surfaces, color_surfaces_list, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize())
 
-FONT_SIZE = 30
-FONT_WIDTH = (FONT_SIZE * 3) / 5
-font = pg.Font(f"{assets_path}/font.ttf", FONT_SIZE)
-font_small = pg.Font(f"{assets_path}/font.ttf", 20)
-CURSOR_POSITION = (0,0)
+def load_settings():
+    global FONT_SIZE, FONT_WIDTH, font, bg, CARET
+    with open(f"{db.config_path}/settings.json", "r") as fp:
+        s = json.load(fp)
+        FONT_SIZE = s["font size"]
+        CARET = s["caret"]
+        FONT_WIDTH = (FONT_SIZE * 3) / 5
+        font = pg.Font(f"{db.assets_path}/font.ttf", FONT_SIZE)
+        bg = s["bg color"]
+        cl.default_color = s["font color"]
 
-# TODO make color based on colors.json
-bg = (25, 25, 25)
+font_small = pg.Font(f"{db.assets_path}/font.ttf", 20)
+db.load_settings = load_settings
+load_settings()
+
+CURSOR_POSITION = (0,0)
 
 def open_file(file):
     global FILE_CONTENT, CURSOR_POSITION, FILE, file_extention, interactions, colors
-    with open(f"{config_path}/default_theme.json", "r") as fp:
+    with open(f"{db.config_path}/default_theme.json", "r") as fp:
         colors = json.load(fp)
     if file != "console":
         FILE = file
@@ -269,24 +279,24 @@ def open_file(file):
                 FILE_CONTENT = ["",]
                 CURSOR_POSITION = [0,0]
 
-        markup_json = f"{markups_path}/{file_extention}.json"
+        markup_json = f"{db.markups_path}/{file_extention}.json"
 
         if os.path.exists(markup_json):
-            with open(f"{markups_path}/any.json", "r") as fp:
+            with open(f"{db.markups_path}/any.json", "r") as fp:
                 [colors.append(color) for color in json.load(fp)]
             with open(markup_json, "r") as fp:
                 [colors.append(color) for color in json.load(fp)]
 
-        with open(f"{config_path}/interactions.json", "r") as fp:
+        with open(f"{db.config_path}/interactions.json", "r") as fp:
             interactions = json.load(fp)
         try:
             os.chdir(os.path.dirname(file))
             FILE = os.path.basename(file)
         except OSError:
             FILE = os.path.basename(file)
-            print("not opening")
+            print("Failed to open file")
     else:
-        with open(f"{config_path}/interactions.json", "r") as fp:
+        with open(f"{db.config_path}/interactions.json", "r") as fp:
             interactions = json.load(fp)
         CURSOR_POSITION = [7,0]
         u.save(FILE, FILE_CONTENT)
@@ -309,8 +319,8 @@ try:
         handle_writing()
         handle_interactions()
         c.text(
-            "_",
-            (CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], CURSOR_DISPLAY_POSITION[1]+MARGINS[1]+10-DISPLAY_CAMERA_POSITION[1]),
+            CARET,
+            (CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], CURSOR_DISPLAY_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]),
             color = [150, 255, 150],
             font = font,
         )
@@ -355,12 +365,10 @@ try:
             CURSOR_POSITION = [7,0]
             FILE_CONTENT = ["..cmd:>",]
             init_interactions()
-        print((c.get_frames() % (1*30*60)))
         if not (c.get_frames() % (1*30*60)):
             u.save(FILE, FILE_CONTENT)
 
         if c.key_clicked(pg.K_F5) and c.key_pressed(pg.K_F5) and not FILE == "console":
-            print("pressed")
             u.save(FILE, FILE_CONTENT)
             db.debug(FILE)
 except Exception as e:
