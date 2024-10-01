@@ -85,15 +85,21 @@ def handle_colors(display: list, colors):
 
     return display, colored_files
 
-def draw_text(display, colored_files, MARGINS, DISPLAY_POS, font_height):
+def draw_text(display, colored_files, MARGINS, DISPLAY_POS, font_height, S):
+    _margin_y = -100
+    _cond: bool = 0
     for idx, line in enumerate(display):
-        c.blit(
-            line,
-            (MARGINS[0]-DISPLAY_POS[0], MARGINS[1]-DISPLAY_POS[1]+(idx*font_height))
-        )
-    for cfile in colored_files:
-        for idx, line in enumerate(cfile):
+        height = MARGINS[1]-DISPLAY_POS[1]+(idx*font_height)
+        if _cond or abs(height-S[1]//2) < S[1]//2-_margin_y:
             c.blit(
                 line,
-                (MARGINS[0]-DISPLAY_POS[0], MARGINS[1]-DISPLAY_POS[1]+(idx*font_height))
+                (MARGINS[0]-DISPLAY_POS[0], height)
             )
+    for cfile in colored_files:
+        for idx, line in enumerate(cfile):
+            height = MARGINS[1]-DISPLAY_POS[1]+(idx*font_height)
+            if _cond or abs(height-S[1]//2) < S[1]//2-_margin_y:
+                c.blit(
+                    line,
+                    (MARGINS[0]-DISPLAY_POS[0], height)
+                )

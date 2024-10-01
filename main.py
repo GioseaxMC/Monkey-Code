@@ -8,7 +8,6 @@ from pprint import pprint as pp
 import debug.debugger as db
 import sys
 import os
-
 NAME = "Monkey Code"
 
 try:
@@ -121,7 +120,7 @@ def handle_cursor_movement():
     if c.key_pressed(pg.K_LALT):
         w.move(FILE_CONTENT, CURSOR_POSITION, selecting, SELECTION, (c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP)))
     else:
-        CURSOR_POSITION[1] += c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP) - (c.get_wheel() * (not c.shift()))
+        CURSOR_POSITION[1] += c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP) - (c.get_wheel() * wheel_speed * (not c.shift()))
         if CURSOR_POSITION[1] >= len(display):
             CURSOR_POSITION[0] = len(display[-1])
         if CURSOR_POSITION[1] < 0:
@@ -141,7 +140,7 @@ def draw_selection():
     if selecting:
         _color = [40,40,40]
         _size_boost = 22
-        _offsetY = -4
+        _offsetY = (FONT_SIZE/30)*4 - 8
         try:
             if SELECTION[1][1] - SELECTION[0][1]:
                 sorted_sel = sorted(SELECTION, key=lambda x: x[1])
@@ -238,18 +237,19 @@ w.update_display = update_display
 def handle_interactions():
     update_display()
     draw_selection()
-    cl.draw_text(text_display_surfaces, color_surfaces_list, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize())
+    cl.draw_text(text_display_surfaces, color_surfaces_list, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize(), (WIDTH, HEIGHT))
 
 def load_settings():
-    global FONT_SIZE, FONT_WIDTH, font, bg, CARET
+    global FONT_SIZE, FONT_WIDTH, font, bg, CARET, wheel_speed
     with open(f"{db.config_path}/settings.json", "r") as fp:
         s = json.load(fp)
-        FONT_SIZE = s["font size"]
+        FONT_SIZE = max(5, (s["font size"] // 5) * 5)
         CARET = s["caret"]
         FONT_WIDTH = (FONT_SIZE * 3) / 5
         font = pg.Font(f"{db.assets_path}/font.ttf", FONT_SIZE)
         bg = s["bg color"]
         cl.default_color = s["font color"]
+        wheel_speed = s["scroll speed"]
 
 font_small = pg.Font(f"{db.assets_path}/font.ttf", 20)
 db.load_settings = load_settings
@@ -310,8 +310,24 @@ try:
         c.set_title(f"Monkey Editor - {VERSION} - {FILE}")
         if c.is_updating_sizes():
             update_sizes()
-        if c.ctrl() and c.key_clicked("s"):
-            u.save(FILE, FILE_CONTENT)
+        if c.ctrl():
+            if c.key_clicked("s"):
+                u.save(FILE, FILE_CONTENT)
+            if (offset := c.key_clicked(pg.K_PLUS) - c.key_clicked(pg.K_MINUS)):
+                _old_size = font.get_linesize()
+                FONT_SIZE += offset * 5
+                FONT_SIZE = max(5, (FONT_SIZE // 5) * 5)
+                FONT_WIDTH = (FONT_SIZE * 3) / 5
+                font = pg.Font(f"{db.assets_path}/font.ttf", FONT_SIZE)
+                _new_size = font.get_linesize()
+                for idx, surface in enumerate(text_display_surfaces):
+                    print("changing size")
+                    # old.x : --new.x = old.y : new.y = 
+                    text_display_surfaces[idx] = pg.transform.scale(surface, (surface.get_size()[0]*_new_size/_old_size, _new_size))
+                    for color in color_surfaces_list:
+                        color[idx] = pg.transform.scale(color[idx], (surface.get_size()[0]*_new_size/_old_size, _new_size))
+
+
 
         handle_cursor_movement()
         handle_writing()
@@ -333,6 +349,7 @@ try:
                 f"Color buffers: {len(colored)}",
                 f"Cursor X,Y : {CURSOR_POSITION}",
                 f"Selection : {SELECTION} - {selecting}",
+                f"Font Size : {FONT_SIZE}",
                 # f"history:",
                 # *history[-32:],
                 font = font_small,
