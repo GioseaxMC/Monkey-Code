@@ -9,15 +9,14 @@ import debug.debugger as db
 import sys
 import os
 
-
-VERSION = "Alpha 1.0.2"
+VERSION = "Alpha 1.0.3"
 
 print(__file__)
 
 try:
     FILE = sys.argv[1:][0]
 except:
-    FILE = "./file.txt"
+    FILE = "console"
 FILE_CONTENT = []
 ACTUAL_POSITION = [0,0]
 CURSOR_POSITION = [0,0]
@@ -34,15 +33,19 @@ edits = w.edits
 ctrl_zing = 0
 if getattr(sys, 'frozen', False):
     app_path = sys.executable
+    if os.getcwd() == os.path.dirname(app_path):
+        u.add_to_path(os.getcwd())
+        print("CURRENT WD:", os.path.dirname(app_path))
+        print(f"Added command \"monkey\" to path")
+        exit()
     sys.stdout = open(os.devnull, 'w')
 else:
     app_path = os.path.abspath(__file__)
-print("CURRENT WD:", os.path.dirname(app_path))
-# os.chdir(os.path.dirname(app_path))
+    print("CURRENT WD:", os.path.dirname(app_path))
+    
 markups_path = f"{os.path.dirname(app_path)}/assets/config/markups"
 config_path = f"{os.path.dirname(app_path)}/assets/config"
 assets_path = f"{os.path.dirname(app_path)}/assets"
-
 
 c.window(1290, 720, title = f"Text editor - {VERSION}", smallest_window_sizes=(1290, 720), icon=f"{assets_path}/icon.png")
 
@@ -195,10 +198,10 @@ def handle_writing():
             FPS = 60
             # history.pop()
     else:
-        w.write(FILE_CONTENT, display, CURSOR_POSITION, SELECTION, mutable)
+        w.write(FILE_CONTENT, display, CURSOR_POSITION, SELECTION, mutable, FILE)
         selecting = mutable[0]
 
-def init_colors():
+def init_interactions():
     global colored, display, color_surfaces_list, text_display_surfaces
     display = cl.handle_interactions(FILE_CONTENT, interactions)
     display, colored = cl.handle_colors(display, colors)
@@ -248,43 +251,48 @@ bg = (25, 25, 25)
 
 def open_file(file):
     global FILE_CONTENT, CURSOR_POSITION, FILE, file_extention, interactions, colors
-    FILE = file
-    file_extention = FILE.split(".")[-1].lower()
-    if os.path.exists(file):
-        with open(file, "r") as fp:
-            FILE_CONTENT = [line.replace("\n","") for line in fp.readlines()]
-            if not FILE_CONTENT:
-                FILE_CONTENT = ["",]
-            CURSOR_POSITION = [len(FILE_CONTENT[-1]),len(FILE_CONTENT)]
-    else:
-        try:
-            os.mkdir(os.path.dirname(file))
-        except (FileExistsError, FileNotFoundError) as e:
-            print(f"source exists: {e}")
-        with open(file, "w") as fp:
-            FILE_CONTENT = ["",]
-            CURSOR_POSITION = [0,0]
-
-    markup_json = f"{markups_path}/{file_extention}.json"
-
     with open(f"{config_path}/default_theme.json", "r") as fp:
         colors = json.load(fp)
+    if file != "console":
+        FILE = file
+        file_extention = FILE.split(".")[-1].lower()
+        if os.path.exists(file):
+            with open(file, "r") as fp:
+                FILE_CONTENT = [line.replace("\n","") for line in fp.readlines()]
+                if not FILE_CONTENT:
+                    FILE_CONTENT = ["",]
+                CURSOR_POSITION = [len(FILE_CONTENT[-1]),len(FILE_CONTENT)]
+        else:
+            if dir_name := os.path.dirname(file):
+                os.mkdir(dir_name)
+            with open(file, "w") as fp:
+                FILE_CONTENT = ["",]
+                CURSOR_POSITION = [0,0]
 
-    if os.path.exists(markup_json):
-        with open(f"{markups_path}/any.json", "r") as fp:
-            [colors.append(color) for color in json.load(fp)]
-        with open(markup_json, "r") as fp:
-            [colors.append(color) for color in json.load(fp)]
+        markup_json = f"{markups_path}/{file_extention}.json"
 
-    with open(f"{config_path}/interactions.json", "r") as fp:
-        interactions = json.load(fp)
-    try:
-        os.chdir(os.path.dirname(file))
-        FILE = os.path.basename(file)
-    except OSError:
-        FILE = os.path.basename(file)
-        print("not opening")
-    init_colors()
+        if os.path.exists(markup_json):
+            with open(f"{markups_path}/any.json", "r") as fp:
+                [colors.append(color) for color in json.load(fp)]
+            with open(markup_json, "r") as fp:
+                [colors.append(color) for color in json.load(fp)]
+
+        with open(f"{config_path}/interactions.json", "r") as fp:
+            interactions = json.load(fp)
+        try:
+            os.chdir(os.path.dirname(file))
+            FILE = os.path.basename(file)
+        except OSError:
+            FILE = os.path.basename(file)
+            print("not opening")
+    else:
+        with open(f"{config_path}/interactions.json", "r") as fp:
+            interactions = json.load(fp)
+        CURSOR_POSITION = [7,0]
+        u.save(FILE, FILE_CONTENT)
+        FILE = "console"
+        FILE_CONTENT = ["..cmd:>",]
+    init_interactions()
 db.open_file = open_file
 open_file(FILE)
 
@@ -342,11 +350,11 @@ try:
             u.save(FILE, FILE_CONTENT)
             FILE = "console"
             FILE_CONTENT = ["..cmd:>",]
-            init_colors()
+            init_interactions()
         if FILE == "console" and not "..cmd:>" in FILE_CONTENT[0]:
             CURSOR_POSITION = [7,0]
             FILE_CONTENT = ["..cmd:>",]
-            init_colors()
+            init_interactions()
         print((c.get_frames() % (1*30*60)))
         if not (c.get_frames() % (1*30*60)):
             u.save(FILE, FILE_CONTENT)

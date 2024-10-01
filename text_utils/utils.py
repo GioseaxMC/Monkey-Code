@@ -1,5 +1,7 @@
 from pprint import pprint as pp
 import os
+import subprocess as sb
+import winreg
 
 def check_tokens(file, file2):
     condition = 0
@@ -24,3 +26,25 @@ def get(list: list, idx):
         return list[idx]
     except IndexError:
         return None
+
+def get_user_path():
+    # Open the registry key for the current user's environment variables
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Environment') as key:
+            user_path, _ = winreg.QueryValueEx(key, 'Path')
+            print(user_path)
+            return user_path
+    except FileNotFoundError:
+        return None
+
+def add_to_path(directory): 
+    if current_path := get_user_path():
+        if directory.lower() not in current_path.lower().split(";") or 0:
+            command = f"setx PATH \"{current_path};{directory}\"".replace("/","\\")
+            print(command)
+            sb.call(command)
+            print(f"{directory} added to PATH.")
+        else:
+            print(f"{directory} is already in the PATH.")
+    else:
+        print("not doing")

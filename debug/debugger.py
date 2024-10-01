@@ -26,7 +26,7 @@ def parse_command(command_string):
 def call(*arguments, error: str = -1, _cwd=cwd):
     try:
         print(" ".join(arguments), "cwd:", f'"{_cwd}"')
-        sb.call(" ".join(arguments), cwd=_cwd)
+        sb.call(arguments, cwd=_cwd)
         return True
     except Exception as e:
         if error == -1:
@@ -47,10 +47,10 @@ def debug(file_name):
                 os.remove(name+".exe")
             except FileNotFoundError:
                 ...
-            if call("g++", "\""+file_name+"\"", "-o", name, _cwd=os.getcwd()):
+            if call("g++", file_name, "-o", name, _cwd=os.getcwd()):
                 call(f".\\{name}.exe", error="Compilation failed.", _cwd=os.getcwd())
         case ".py":
-            call("python", "\""+file_name+"\"", _cwd=os.getcwd())
+            call("python", file_name, _cwd=os.getcwd())
         case ".html":
             open_html(f"file://{os.getcwd()+"/"+file_name}")
         case "undefined":

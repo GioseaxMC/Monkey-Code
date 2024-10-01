@@ -220,7 +220,7 @@ def _backspace(file, cursor, selecting, sele):
             cursor[0] = len(file[cursor[1]])
             add_to_line(file, cursor[1], removed_row, cursor)
 
-def write(file: list[str], display: list[str], cursor: tuple[int, int], sele, selecting):
+def write(file: list[str], display: list[str], cursor: tuple[int, int], sele, selecting, current_file):
     global action_id, popped_lines
     popped_lines = 0
     action_id = dt.timestamp(dt.now())
