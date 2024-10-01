@@ -37,7 +37,7 @@ def call(*arguments, error: str = -1, _cwd=cwd):
         if error == -1:
             print(f"Error: {e}")
         else:
-            print(error)
+            print("no code", error)
         return False
 
 def debug(file_name):
