@@ -12,8 +12,7 @@
         "keyword" : "\"([^\"]*)\""
     },
     {
-        "keyword" : "\\b(int|float|double|bool|string|char|void)\\b"
-        ,
+        "keyword" : "\\b(int|float|double|bool|string|char|void)\\b",
         "color" : [100,220,220]
     },
     {
