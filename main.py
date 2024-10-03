@@ -198,33 +198,34 @@ def handle_writing():
         selecting = mutable[0]
 
 def init_interactions():
-    global colored, display, color_surfaces_list, text_display_surfaces
+    global colored, display, color_surfaces, text_display_surfaces
     display = cl.handle_interactions(FILE_CONTENT, interactions)
     display, colored = cl.handle_colors(display, colors)
     text_display_surfaces = [font.render(row, 1, cl.default_color) for row in display]
-    color_surfaces_list = []
-    for cfile in colored:
-        colored_file_list = []
-        color = cfile["color"]
-        for row in cfile["file"]:
-            colored_file_list.append(
-                font.render(row, 1, color)
-            )
-        color_surfaces_list.append(colored_file_list)
+    color_surfaces = []
+    for row in range(len(display)):
+        _colored_render = 0
+        for cfile in colored:
+            color = cfile["color"]
+            if not _colored_render:
+                _colored_render = font.render(cfile["file"][row], 1, color)
+            else:
+                _colored_render.blit(font.render(cfile["file"][row], 1, color))
+        color_surfaces.append(_colored_render)
+    pp(color_surfaces)
 
 def update_display():
-    global display, colors, color_surfaces_list, text_display_surfaces, display_edits
+    global display, colors, color_surfaces, text_display_surfaces, display_edits
     for ed_idx in range(len(w.edits)):
         edit = w.edits.pop(0)
         idx = edit["line"]
         match type := edit["type"]:
             case "pop" | "set":
                 display = cl.handle_interactions_at_row(idx, FILE_CONTENT, display, interactions, edit["type"])
-                cl.handle_colors_at_row(idx, display, colors, color_surfaces_list, text_display_surfaces, font, edit["type"])
+                cl.handle_colors_at_row(idx, display, colors, color_surfaces, text_display_surfaces, font, edit["type"])
             case "insert":
                 display.pop(idx)
-                for color in color_surfaces_list:
-                    color.pop(idx)
+                color_surfaces.pop(idx)
                 text_display_surfaces.pop(idx)
     if any(w.edits):
         display_edits.append(str(w.edits))
@@ -234,7 +235,7 @@ w.update_display = update_display
 def handle_interactions():
     update_display()
     draw_selection()
-    cl.draw_text(text_display_surfaces, color_surfaces_list, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize(), (WIDTH, HEIGHT))
+    cl.draw_text(text_display_surfaces, color_surfaces, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize(), (WIDTH, HEIGHT))
 
 def load_settings():
     global FONT_SIZE, FONT_WIDTH, font, bg, CARET, wheel_speed, CARET_COLOR, CARET_INTERPOLATION, SCROLL_INTERPOLATION
@@ -307,7 +308,6 @@ db.open_file = open_file
 open_file(FILE)
 
 FPS = 60
-# try:
 while c.loop(FPS, bg):
     c.set_title(f"Monkey Editor - {VERSION} - {FILE}")
     if c.is_updating_sizes():
@@ -322,14 +322,7 @@ while c.loop(FPS, bg):
             FONT_WIDTH = (FONT_SIZE * 3) / 5
             font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
             _new_size = font.get_linesize()
-            for idx, surface in enumerate(text_display_surfaces):
-                print("changing size")
-                # old.x : --new.x = old.y : new.y = 
-                text_display_surfaces[idx] = pg.transform.scale(surface, (surface.get_size()[0]*_new_size/_old_size, _new_size))
-                for color in color_surfaces_list:
-                    color[idx] = pg.transform.scale(color[idx], (surface.get_size()[0]*_new_size/_old_size, _new_size))
-
-
+            w.edits = [{ "type" : "set", "line" : line} for line in range(len(display))]
 
     handle_cursor_movement()
     handle_writing()

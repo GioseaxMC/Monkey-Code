@@ -48,17 +48,22 @@ def handle_interactions_at_row(row, FILE_CONTENT: list, display: list, inters, a
     return display
 
 def handle_colors_at_row(row, display: list, colors, colored_surfaces_list, display_surfaces, font: pg.Font, action):
+    temp_colored = 0
     try:
         original_line = display[row]
         for color_id, color_json in enumerate(colors):
             word = color_json["keyword"]
             color = color_json.get("color") if color_json.get("color") else default_color
             original_line, highlighted_line = highlight_word(original_line, word)
-            match action:
-                case "pop":
-                    colored_surfaces_list[color_id].insert(row, font.render(highlighted_line, 1, color))
-                case "set":
-                    colored_surfaces_list[color_id][row] = font.render(highlighted_line, 1, color)
+            if not temp_colored:
+                temp_colored = font.render("-"+highlighted_line, 1, color)
+            else:
+                temp_colored.blit(font.render(highlighted_line, 1, color))
+        match action:
+            case "pop":
+                colored_surfaces_list.insert(row, temp_colored)
+            case "set":
+                colored_surfaces_list[row] = temp_colored
         match action:
             case "pop":
                 display_surfaces.insert(row, font.render(original_line, 1, default_color))
@@ -66,7 +71,6 @@ def handle_colors_at_row(row, display: list, colors, colored_surfaces_list, disp
                 display_surfaces[row] = font.render(original_line, 1, default_color)
     except IndexError:
         print("Handle at row index fail")
-
 
 def handle_colors(display: list, colors):
     colored_files = []
@@ -85,7 +89,7 @@ def handle_colors(display: list, colors):
 
     return display, colored_files
 
-def draw_text(display, colored_files, MARGINS, DISPLAY_POS, font_height, S):
+def draw_text(display, colored_lines, MARGINS, DISPLAY_POS, font_height, S):
     _margin_y = -100
     _cond: bool = 0
     for idx, line in enumerate(display):
@@ -95,11 +99,10 @@ def draw_text(display, colored_files, MARGINS, DISPLAY_POS, font_height, S):
                 line,
                 (MARGINS[0]-DISPLAY_POS[0], height)
             )
-    for cfile in colored_files:
-        for idx, line in enumerate(cfile):
-            height = MARGINS[1]-DISPLAY_POS[1]+(idx*font_height)
-            if _cond or abs(height-S[1]//2) < S[1]//2-_margin_y:
-                c.blit(
-                    line,
-                    (MARGINS[0]-DISPLAY_POS[0], height)
-                )
+    for idx, line in enumerate(colored_lines):
+        height = MARGINS[1]-DISPLAY_POS[1]+(idx*font_height)
+        if _cond or abs(height-S[1]//2) < S[1]//2-_margin_y:
+            c.blit(
+                line,
+                (MARGINS[0]-DISPLAY_POS[0], height)
+            )
