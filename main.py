@@ -34,7 +34,7 @@ with open(f"{g.config_path}/info.txt", "r") as fp:
     info = fp.read().split("\n")
     VERSION = info[0]
 
-c.window(1290, 720, title = f"{NAME} - loading", smallest_window_sizes=(1290, 720), icon=f"{g.assets_path}/icon.png")
+c.window(1290, 720, title = f"{NAME} - loading", smallest_window_sizes=(480, 270), icon=f"{g.assets_path}/icon.png")
 
 pg.key.set_repeat(500, 30)
 
