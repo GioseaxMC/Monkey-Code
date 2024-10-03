@@ -56,7 +56,7 @@ def handle_colors_at_row(row, display: list, colors, colored_surfaces_list, disp
             color = color_json.get("color") if color_json.get("color") else default_color
             original_line, highlighted_line = highlight_word(original_line, word)
             if not temp_colored:
-                temp_colored = font.render("-"+highlighted_line, 1, color)
+                temp_colored = font.render(highlighted_line, 1, color)
             else:
                 temp_colored.blit(font.render(highlighted_line, 1, color))
         match action:
