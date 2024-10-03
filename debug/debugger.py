@@ -81,7 +81,6 @@ def set_settings(args):
                 evaluated = eval(args[1])
             except (NameError, SyntaxError):
                 evaluated = args[1].replace("\\n", "\n")
-            print(f"Error: cannot set {args[0]} of {type(s[args[0]])}: {s[args[0]]} to {type(evaluated)}: {evaluated}")
             if type(s.get(args[0])) == type(evaluated):
                 if type(evaluated) == list:
                     evaluated = [max(min(255, i), 0) for i in evaluated]
