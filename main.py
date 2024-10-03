@@ -243,8 +243,8 @@ def load_settings():
         FONT_SIZE = max(5, (s["font size"] // 5) * 5)
         CARET = s["caret"]
         CARET_COLOR = s["caret color"]
-        CARET_INTERPOLATION = s["caret interpolation"]
-        SCROLL_INTERPOLATION = s["scroll interpolation"]
+        CARET_INTERPOLATION = max(1, s["caret interpolation"])
+        SCROLL_INTERPOLATION = max(1, s["scroll interpolation"])
         FONT_WIDTH = (FONT_SIZE * 3) / 5
         font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
         bg = s["bg color"]
@@ -307,87 +307,93 @@ db.open_file = open_file
 open_file(FILE)
 
 FPS = 60
+error = ""
 while c.loop(FPS, bg):
-    c.set_title(f"Monkey Editor - {VERSION} - {FILE}")
-    if c.is_updating_sizes():
-        update_sizes()
-    if c.ctrl():
-        if c.key_clicked("s"):
-            u.save(FILE, FILE_CONTENT)
-        if (offset := c.key_clicked(pg.K_PLUS) - c.key_clicked(pg.K_MINUS)):
-            _old_size = font.get_linesize()
-            FONT_SIZE += offset * 5
-            FONT_SIZE = max(5, (FONT_SIZE // 5) * 5)
-            FONT_WIDTH = (FONT_SIZE * 3) / 5
-            font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
-            _new_size = font.get_linesize()
-            w.edits = [{ "type" : "set", "line" : line} for line in range(len(display))]
+    try:
+        c.set_title(f"Monkey Editor - {VERSION} - {FILE}")
+        if c.is_updating_sizes():
+            update_sizes()
+        if c.ctrl():
+            if c.key_clicked("s"):
+                u.save(FILE, FILE_CONTENT)
+            if (offset := c.key_clicked(pg.K_PLUS) - c.key_clicked(pg.K_MINUS)):
+                _old_size = font.get_linesize()
+                FONT_SIZE += offset * 5
+                FONT_SIZE = max(5, (FONT_SIZE // 5) * 5)
+                FONT_WIDTH = (FONT_SIZE * 3) / 5
+                font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
+                _new_size = font.get_linesize()
+                w.edits = [{ "type" : "set", "line" : line} for line in range(len(display))]
 
-    handle_cursor_movement()
-    handle_writing()
-    handle_interactions()
-    c.text(
-        CARET,
-        (CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], CURSOR_DISPLAY_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]),
-        color = CARET_COLOR,
-        font = font,
-    )
-
-    DEBUG += c.key_clicked(pg.K_F3)
-    DEBUG = DEBUG % 3
-    if DEBUG:
-        c.debug_list(
-            f"Mouse Position: {c.mouse_position()}",
-            f"Fps: {c.get_FPS()}",
-            f"Perfomance: {1/c.get_delta() * 100}%",
-            f"Color buffers: {len(colored)}",
-            f"Cursor X,Y : {CURSOR_POSITION}",
-            f"Selection : {SELECTION} - {selecting}",
-            f"Font Size : {FONT_SIZE}",
-            # f"history:",
-            # *history[-32:],
-            font = font_small,
-        )
+        handle_cursor_movement()
+        handle_writing()
+        handle_interactions()
         c.text(
             CARET,
-            (ACTUAL_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], ACTUAL_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]),
-            color = "white",
+            (CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], CURSOR_DISPLAY_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]),
+            color = CARET_COLOR,
             font = font,
         )
 
-    if DEBUG == 2:
-        c.debug_list(
-            "        - FILE",
-            *["\""+line.replace(" ", ".")+"\"" for line in FILE_CONTENT],
-            font = font_small,
-            position=(WIDTH*.5, 0),
-            color="cyan"
-        )
-        c.debug_list(
-            "DISPLAY",
-            *["\""+line.replace(" ", ".")+"\"" for line in display],
-            font = font_small,
-            position=(WIDTH*.5, 0)
-        )
-    
-    if c.ctrl() and c.key_clicked("o"):
-        CURSOR_POSITION = [7,0]
-        u.save(FILE, FILE_CONTENT)
-        FILE = "console"
-        FILE_CONTENT = ["..cmd:>",]
-        init_interactions()
-    if FILE == "console" and not "..cmd:>" in FILE_CONTENT[0]:
-        CURSOR_POSITION = [7,0]
-        FILE_CONTENT = ["..cmd:>",]
-        init_interactions()
-    if not (c.get_frames() % (1*30*60)):
-        u.save(FILE, FILE_CONTENT)
+        DEBUG += c.key_clicked(pg.K_F3)
+        DEBUG = DEBUG % 3
+        if DEBUG:
+            c.debug_list(
+                f"Mouse Position: {c.mouse_position()}",
+                f"Fps: {c.get_FPS()}",
+                f"Perfomance: {1/c.get_delta() * 100}%",
+                f"Color buffers: {len(colored)}",
+                f"Cursor X,Y : {CURSOR_POSITION}",
+                f"Selection : {SELECTION} - {selecting}",
+                f"Font Size : {FONT_SIZE}",
+                # f"history:",
+                # *history[-32:],
+                font = font_small,
+            )
+            c.text(
+                CARET,
+                (ACTUAL_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], ACTUAL_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]),
+                color = "white",
+                font = font,
+            )
 
-    if c.key_clicked(pg.K_F5) and c.key_pressed(pg.K_F5) and not FILE == "console":
-        u.save(FILE, FILE_CONTENT)
-        db.debug(FILE)
-# except None as e:
-#     print(f"An error occurred: {e}")
-#     # u.save(FILE, FILE_CONTENT)
+        if DEBUG == 2:
+            c.debug_list(
+                "        - FILE",
+                *["\""+line.replace(" ", ".")+"\"" for line in FILE_CONTENT],
+                font = font_small,
+                position=(WIDTH*.5, 0),
+                color="cyan"
+            )
+            c.debug_list(
+                "DISPLAY",
+                *["\""+line.replace(" ", ".")+"\"" for line in display],
+                font = font_small,
+                position=(WIDTH*.5, 0)
+            )
+        
+        if c.ctrl() and c.key_clicked("o"):
+            CURSOR_POSITION = [7,0]
+            u.save(FILE, FILE_CONTENT)
+            FILE = "console"
+            FILE_CONTENT = ["..cmd:>",]
+            init_interactions()
+        if FILE == "console" and not "..cmd:>" in FILE_CONTENT[0]:
+            CURSOR_POSITION = [7,0]
+            FILE_CONTENT = ["..cmd:>",]
+            init_interactions()
+        if not (c.get_frames() % (1*30*60)):
+            u.save(FILE, FILE_CONTENT)
+
+        if c.key_clicked(pg.K_F5) and c.key_pressed(pg.K_F5) and not FILE == "console":
+            u.save(FILE, FILE_CONTENT)
+            db.debug(FILE)
+    except Exception as e:
+        if e == error:
+            print("Closing to avoid catch looping.")
+            break
+        else:
+            error = e
+            print(f"An error occurred: {e}")
 u.save(FILE, FILE_CONTENT)
 print("Closing succesfully.")

@@ -1,10 +1,22 @@
 {
-    "font size" : 25,
-    "font color" : [200,200,200],
-    "caret" : "_",
-    "caret color" : [150, 255, 150],
-    "bg color" : [25, 25, 25],
-    "scroll speed" : 5,
-    "scroll interpolation" : 5,
-    "caret interpolation" : 3
+    "font size": 20,
+    "font color": [
+        255,
+        255,
+        255
+    ],
+    "caret": "<-",
+    "caret color": [
+        255,
+        255,
+        255
+    ],
+    "bg color": [
+        12,
+        12,
+        12
+    ],
+    "scroll speed": 5,
+    "scroll interpolation": 1,
+    "caret interpolation": 0
 }

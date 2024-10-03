@@ -72,17 +72,20 @@ def debug(file_name):
 
 def set_settings(args):
     if len(args) < 2:
+        print("Invalid Syntax, expected 2 arguments, got 1")
         return
-    with open(f"{g.config_path}/settings.json", "r") as fp:
+    with open(f"{g.themes_path}/settings.json", "r") as fp:
         s = json.load(fp)
         if s.get(args[0]):
             try:
                 evaluated = eval(args[1])
-            except NameError:
-                evaluated = args[1]
+            except (NameError, SyntaxError):
+                evaluated = args[1].replace("\\n", "\n")
             if type(s.get(args[0])) == type(evaluated):
+                if type(evaluated) == list:
+                    evaluated = [max(min(255, i), 0) for i in evaluated]
                 print("Updating setting")
-                with open(f"{g.config_path}/settings.json", "w") as _fp:
+                with open(f"{g.themes_path}/settings.json", "w") as _fp:
                     s[args[0]] = evaluated
                     json.dump(s, _fp, indent=4)
 
@@ -104,6 +107,7 @@ def run(command):
                     open_file("console")
                 case "load":
                     if len(args) < 2:
+                        print("Invalid Syntax, expected 2 arguments, got 1")
                         return
                     if not os.path.exists(f"{g.themes_path}/{args[1]}.json"):
                         return
@@ -119,6 +123,7 @@ def run(command):
                     open_file("console")            
                 case _:
                     set_settings(args)
+                    print(f"Setting {args[0]} to {args[1]}")
                     load_settings()
                     open_file("console")
         case _:
