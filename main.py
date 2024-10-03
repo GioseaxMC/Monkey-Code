@@ -310,12 +310,13 @@ FPS = 60
 error = ""
 while c.loop(FPS, bg):
     try:
-        c.set_title(f"Monkey Editor - {VERSION} - {FILE}")
+        c.set_title(f"{NAME} - {VERSION} - {FILE}")
         if c.is_updating_sizes():
             update_sizes()
         if c.ctrl():
             if c.key_clicked("s"):
                 u.save(FILE, FILE_CONTENT)
+                print("File saved.")
             if (offset := c.key_clicked(pg.K_PLUS) - c.key_clicked(pg.K_MINUS)):
                 _old_size = font.get_linesize()
                 FONT_SIZE += offset * 5
