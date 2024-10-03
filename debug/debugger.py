@@ -71,6 +71,8 @@ def debug(file_name):
             get().open_new_tab(html)
 
 def set_settings(args):
+    if len(args) < 2:
+        return
     with open(f"{g.config_path}/settings.json", "r") as fp:
         s = json.load(fp)
         if s.get(args[0]):
@@ -101,6 +103,8 @@ def run(command):
                     load_settings()
                     open_file("console")
                 case "load":
+                    if len(args) < 2:
+                        return
                     if not os.path.exists(f"{g.themes_path}/{args[1]}.json"):
                         return
                     with open(f"{g.themes_path}/settings.json", "r") as fpa:

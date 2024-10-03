@@ -212,7 +212,6 @@ def init_interactions():
             else:
                 _colored_render.blit(font.render(cfile["file"][row], 1, color))
         color_surfaces.append(_colored_render)
-    pp(color_surfaces)
 
 def update_display():
     global display, colors, color_surfaces, text_display_surfaces, display_edits
@@ -370,7 +369,7 @@ while c.loop(FPS, bg):
             font = font_small,
             position=(WIDTH*.5, 0)
         )
-
+    
     if c.ctrl() and c.key_clicked("o"):
         CURSOR_POSITION = [7,0]
         u.save(FILE, FILE_CONTENT)
