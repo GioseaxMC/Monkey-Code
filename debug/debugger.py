@@ -76,18 +76,23 @@ def set_settings(args):
         return
     with open(f"{g.themes_path}/settings.json", "r") as fp:
         s = json.load(fp)
-        if s.get(args[0]):
+        if s.get(args[0]) != None:
             try:
                 evaluated = eval(args[1])
             except (NameError, SyntaxError):
                 evaluated = args[1].replace("\\n", "\n")
+            print(f"Error: cannot set {args[0]} of {type(s[args[0]])}: {s[args[0]]} to {type(evaluated)}: {evaluated}")
             if type(s.get(args[0])) == type(evaluated):
                 if type(evaluated) == list:
                     evaluated = [max(min(255, i), 0) for i in evaluated]
-                print("Updating setting")
+                print(f"Setting {args[0]} to {type(evaluated)}: {evaluated}")
                 with open(f"{g.themes_path}/settings.json", "w") as _fp:
                     s[args[0]] = evaluated
                     json.dump(s, _fp, indent=4)
+            else:
+                print(f"Error: cannot set {args[0]} of {type(s[args[0]])}: {s[args[0]]} to {type(evaluated)}: {evaluated}")
+        else:
+            print("Expected 2 arguments, got 0.")
 
 def run(command):
     cmd, args = parse_command(command)
@@ -123,7 +128,6 @@ def run(command):
                     open_file("console")            
                 case _:
                     set_settings(args)
-                    print(f"Setting {args[0]} to {args[1]}")
                     load_settings()
                     open_file("console")
         case _:

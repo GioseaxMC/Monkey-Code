@@ -237,7 +237,7 @@ def handle_interactions():
     cl.draw_text(text_display_surfaces, color_surfaces, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize(), (WIDTH, HEIGHT))
 
 def load_settings():
-    global FONT_SIZE, FONT_WIDTH, font, bg, CARET, wheel_speed, CARET_COLOR, CARET_INTERPOLATION, SCROLL_INTERPOLATION
+    global FONT_SIZE, FONT_WIDTH, font, bg, CARET, wheel_speed, CARET_COLOR, CARET_INTERPOLATION, SCROLL_INTERPOLATION, DO_HIGHLIGHTING
     with open(f"{g.themes_path}/settings.json", "r") as fp:
         s = json.load(fp)
         FONT_SIZE = max(5, (s["font size"] // 5) * 5)
@@ -245,6 +245,7 @@ def load_settings():
         CARET_COLOR = s["caret color"]
         CARET_INTERPOLATION = max(1, s["caret interpolation"])
         SCROLL_INTERPOLATION = max(1, s["scroll interpolation"])
+        DO_HIGHLIGHTING = s["highlight"]
         FONT_WIDTH = (FONT_SIZE * 3) / 5
         font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
         bg = s["bg color"]
@@ -262,6 +263,7 @@ def open_file(file):
     global FILE_CONTENT, CURSOR_POSITION, FILE, file_extention, interactions, colors
     with open(f"{g.markups_path}/_base.json", "r") as fp:
         colors = json.load(fp)
+        _base_colors = colors.copy()
     if file != "console":
         FILE = file
         file_extention = FILE.split(".")[-1].lower()
@@ -295,6 +297,9 @@ def open_file(file):
         except OSError:
             FILE = os.path.basename(file)
             print("CWD is already set")
+        if not DO_HIGHLIGHTING:
+            colors[:] = _base_colors
+            del _base_colors
     else:
         with open(f"{g.config_path}/interactions.json", "r") as fp:
             interactions = json.load(fp)

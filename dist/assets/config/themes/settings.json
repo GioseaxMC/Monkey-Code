@@ -6,5 +6,6 @@
     "bg color" : [25, 25, 25],
     "scroll speed" : 5,
     "scroll interpolation" : 5,
-    "caret interpolation" : 3
+    "caret interpolation" : 3,
+    "highlight" : true
 }
