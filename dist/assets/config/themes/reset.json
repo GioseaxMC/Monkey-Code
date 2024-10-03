@@ -7,5 +7,5 @@
     "scroll speed" : 5,
     "scroll interpolation" : 5,
     "caret interpolation" : 3,
-    "highlight" : true
+    "highlight" : 1
 }
