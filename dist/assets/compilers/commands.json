@@ -1,0 +1,5 @@
+{
+    "cpp"  : "g++ \"%filename_ext%\" -o \"%filename%\"",
+    "py"   : "python \"%filename_ext%\"",
+    "html" : "file://%cwd%/%filename_ext%"
+}

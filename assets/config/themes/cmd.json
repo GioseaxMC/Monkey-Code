@@ -1,0 +1,10 @@
+{
+    "font size" : 20,
+    "font color" : [255,255,255],
+    "caret" : "_",
+    "caret color" : [255,255,255],
+    "caret interpolation" : 1,
+    "scroll interpolation" : 1,
+    "bg color" : [12,12,12],
+    "scroll speed" : 5
+}

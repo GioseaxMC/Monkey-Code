@@ -18,7 +18,6 @@ def save(file, file_content):
         return
     with open(file, "w") as fp:
         fp.write("\n".join(file_content)) # .replace("\r", "")
-    print("Saved suffessfully.")
 
 def get(list: list, idx):
     try:
@@ -47,3 +46,12 @@ def add_to_path(directory):
             print(f"{directory} is already in the PATH.")
     else:
         print("not doing")
+
+def bool_to_sign(value: bool):
+    if value:
+        return 1
+    else:
+        return -1
+
+def sign(value: int):
+    return bool_to_sign(value >= 0)

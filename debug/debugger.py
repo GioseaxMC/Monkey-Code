@@ -1,17 +1,14 @@
 import subprocess as sb
 import shlex
 import os
-from webbrowser import open as open_html
+from webbrowser import get
 import json
 import shutil
+import globals as g
 
 open_file = lambda file: bool
-load_settings = lambda: None  
-cwd = os.getcwd()
+load_settings = lambda: None
 os.environ['PYDEVD_DISABLE_FILE_VALIDATION'] = '1'
-markups_path: str
-config_path: str
-assets_path: str
 
 def parse_command(command_string):
     command_string = command_string + " fixer "
@@ -29,9 +26,13 @@ def parse_command(command_string):
 
     return loc_command, arguments
 
-def call(*arguments, error: str = -1, _cwd=cwd):
+with open(f"{g.assets_path}/compilers/commands.json", "r") as fp:
+    commands_file = json.load(fp)
+
+def call(command, error: str = -1, _cwd=os.getcwd()):
     try:
-        sb.call(arguments, cwd=_cwd)
+        print("running:",command)
+        sb.call(command, cwd=_cwd)
         return True
     except Exception as e:
         if error == -1:
@@ -41,28 +42,36 @@ def call(*arguments, error: str = -1, _cwd=cwd):
         return False
 
 def debug(file_name):
+    global commands_file
     file_name = file_name.replace("\"","")
     _, extention = os.path.splitext(file_name)
+    if extention[0] == ".":
+        extention = extention[1:]
     name = os.path.basename(file_name)
     name, _ = os.path.splitext(name)
-    print(f"Debugging: {name}{extention}")
+    print(f"Debugging: {name}.{extention}")
+    commands = dict()
+    for key in commands_file:
+        commands[key] = commands_file[key].replace(r"%filename%", name).replace(r"%filename_ext%", f"{name}.{extention}").replace(r"%cwd%", os.getcwd())
     match extention:
-        case ".cpp":
+        case "cpp":
             try:
                 os.remove(name+".exe")
             except FileNotFoundError:
                 ...
-            if call("g++", file_name, "-o", name, _cwd=os.getcwd()):
+            cpp = commands["cpp"]
+            if call(cpp, _cwd=os.getcwd()):
                 call(f".\\{name}.exe", error="Compilation failed.", _cwd=os.getcwd())
-        case ".py":
-            call("python", file_name, _cwd=os.getcwd())
-        case ".html":
-            open_html(f"file://{os.getcwd()+"/"+file_name}")
-        case "undefined":
-            call("\""+file_name+"\"")
+        case "py":
+            py = commands["py"]
+            call(py, _cwd=os.getcwd())
+        case "html":
+            html = commands["html"]
+            print(f"opening {html} in default browser.")
+            get().open_new_tab(html)
 
 def set_settings(args):
-    with open(f"{config_path}/settings.json", "r") as fp:
+    with open(f"{g.config_path}/settings.json", "r") as fp:
         s = json.load(fp)
         if s.get(args[0]):
             try:
@@ -71,7 +80,7 @@ def set_settings(args):
                 evaluated = args[1]
             if type(s.get(args[0])) == type(evaluated):
                 print("Updating setting")
-                with open(f"{config_path}/settings.json", "w") as _fp:
+                with open(f"{g.config_path}/settings.json", "w") as _fp:
                     s[args[0]] = evaluated
                     json.dump(s, _fp, indent=4)
 
@@ -86,14 +95,28 @@ def run(command):
         case "exit":
             exit(0)
         case "set":
-            if args[0] == "reset":
-                shutil.copy(f"{config_path}/default_settings.json", f"{config_path}/settings.json")
-                load_settings()
-                open_file("console")
-            else:
-                set_settings(args)
-                load_settings()
-                open_file("console")
+            match args[0]:
+                case "reset":
+                    shutil.copy(f"{g.themes_path}/reset.json", f"{g.themes_path}/settings.json")
+                    load_settings()
+                    open_file("console")
+                case "load":
+                    if not os.path.exists(f"{g.themes_path}/{args[1]}.json"):
+                        return
+                    with open(f"{g.themes_path}/settings.json", "r") as fpa:
+                        default = json.load(fpa)
+                    with open(f"{g.themes_path}/{args[1]}.json", "r") as fpa:
+                        new = json.load(fpa)
+                        default.update(new)
+                    with open(f"{g.themes_path}/settings.json", "w") as fpa:
+                        json.dump(default, fpa, indent=4)
+                    
+                    load_settings()
+                    open_file("console")            
+                case _:
+                    set_settings(args)
+                    load_settings()
+                    open_file("console")
         case _:
             open_file("console")
 

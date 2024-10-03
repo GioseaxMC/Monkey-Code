@@ -8,6 +8,8 @@ from pprint import pprint as pp
 import debug.debugger as db
 import sys
 import os
+import globals as g
+
 NAME = "Monkey Code"
 
 try:
@@ -27,27 +29,12 @@ SELECTION = [[0,0], [0,0]]
 selecting = 0
 display_edits: list = []
 edits = w.edits
-if getattr(sys, 'frozen', False):
-    app_path = sys.executable
-    if os.getcwd() == os.path.dirname(app_path):
-        u.add_to_path(os.getcwd())
-        print("CURRENT WD:", os.path.dirname(app_path))
-        print(f"Added command \"monkey\" to path")
-        exit()
-    # sys.stdout = open(os.devnull, 'w')
-else:
-    app_path = os.path.abspath(__file__)
-    print("CURRENT WD:", os.path.dirname(app_path))
-    
-db.markups_path = f"{os.path.dirname(app_path)}/assets/config/markups"
-db.config_path = f"{os.path.dirname(app_path)}/assets/config"
-db.assets_path = f"{os.path.dirname(app_path)}/assets"
 
-with open(f"{db.config_path}/info.txt", "r") as fp:
+with open(f"{g.config_path}/info.txt", "r") as fp:
     info = fp.read().split("\n")
     VERSION = info[0]
 
-c.window(1290, 720, title = f"{NAME} - loading", smallest_window_sizes=(1290, 720), icon=f"{db.assets_path}/icon.png")
+c.window(1290, 720, title = f"{NAME} - loading", smallest_window_sizes=(1290, 720), icon=f"{g.assets_path}/icon.png")
 
 pg.key.set_repeat(500, 30)
 
@@ -88,15 +75,24 @@ def handle_cursor_movement():
 
     if offset and not moved:
         if c.ctrl():
+            is_at_start = CURSOR_POSITION[0] <= 0
             CURSOR_POSITION[0] += offset
             try:
                 _is_space_start = FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]].isspace()
             except IndexError:
                 _is_space_start = 0
-            while True:
-                CURSOR_POSITION[0] += offset
-                if CURSOR_POSITION[0] < 0 or CURSOR_POSITION[0] >= len(display[CURSOR_POSITION[1]]) or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]].isspace() != _is_space_start or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]] in "()[]{}.,-+/*<>":
-                    break
+            if not CURSOR_POSITION[0]:
+                CURSOR_POSITION[0] -= 1
+            else:
+                while True:
+                    CURSOR_POSITION[0] += offset
+                    try:
+                        if CURSOR_POSITION[0] < 0 or CURSOR_POSITION[0] >= len(display[CURSOR_POSITION[1]]) or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]+offset].isspace() != _is_space_start or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]] in "()[]{}.,-+/*<>":
+                            if not is_at_start:
+                                CURSOR_POSITION[0] = max(0, CURSOR_POSITION[0])
+                            break
+                    except IndexError:
+                        break
         else:
             CURSOR_POSITION[0] += offset
 
@@ -130,8 +126,8 @@ def handle_cursor_movement():
 
     #smooth movement
     ACTUAL_POSITION = [i*j for i, j in zip(CURSOR_POSITION, [FONT_WIDTH, font.get_linesize()])]
-    CURSOR_DISPLAY_POSITION[0] += (ACTUAL_POSITION[0] - CURSOR_DISPLAY_POSITION[0]) / 3
-    CURSOR_DISPLAY_POSITION[1] += (ACTUAL_POSITION[1] - CURSOR_DISPLAY_POSITION[1]) / 3
+    CURSOR_DISPLAY_POSITION[0] += (ACTUAL_POSITION[0] - CURSOR_DISPLAY_POSITION[0]) / CARET_INTERPOLATION
+    CURSOR_DISPLAY_POSITION[1] += (ACTUAL_POSITION[1] - CURSOR_DISPLAY_POSITION[1]) / CARET_INTERPOLATION
     if c.shift() and selecting:
         SELECTION[1] = CURSOR_POSITION.copy()
     handle_cursor_position()
@@ -139,7 +135,7 @@ def handle_cursor_movement():
 def draw_selection():
     if selecting:
         _color = [40,40,40]
-        _size_boost = 22
+        _size = font.get_linesize()+12
         _offsetY = (FONT_SIZE/30)*4 - 8
         try:
             if SELECTION[1][1] - SELECTION[0][1]:
@@ -147,19 +143,19 @@ def draw_selection():
                 for global_line, local_line in enumerate(range(sorted_sel[1][1]-sorted_sel[0][1]+1), sorted_sel[0][1]):
                     if local_line == 0:
                         x = (1+len(display[global_line]) - sorted_sel[0][0])
-                        surface = c.rounded_rectangle(x*FONT_WIDTH, FONT_SIZE+_size_boost, 14, _color)
+                        surface = c.rounded_rectangle(x*FONT_WIDTH, _size, 14, _color)
                         c.blit(surface, (sorted_sel[0][0]*FONT_WIDTH+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1]))
                     elif global_line == sorted_sel[1][1]:
                         x = (sorted_sel[1][0])
-                        surface = c.rounded_rectangle(x*FONT_WIDTH, FONT_SIZE+_size_boost, 14, _color)
+                        surface = c.rounded_rectangle(x*FONT_WIDTH, _size, 14, _color)
                         c.blit(surface, (MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1]))
                     else:
                         x = (1+len(display[global_line]))
-                        surface = c.rounded_rectangle(x*FONT_WIDTH, FONT_SIZE+_size_boost, 14, _color)
+                        surface = c.rounded_rectangle(x*FONT_WIDTH, _size, 14, _color)
                         c.blit(surface, (MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1]))
             elif SELECTION[0][0] - SELECTION[1][0]:
                 sorted_sel = sorted(SELECTION, key=lambda x: x[0])
-                surface = c.rounded_rectangle((sorted_sel[1][0] - sorted_sel[0][0]) * FONT_WIDTH, FONT_SIZE+_size_boost, 14, _color)
+                surface = c.rounded_rectangle((sorted_sel[1][0] - sorted_sel[0][0]) * FONT_WIDTH, _size, 14, _color)
                 c.blit(surface, ((sorted_sel[0][0])*FONT_WIDTH+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], SELECTION[0][1]*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1]))
         except IndexError:
             print("waiting for threads...")
@@ -167,14 +163,15 @@ def draw_selection():
 def handle_cursor_position():
     x = CURSOR_DISPLAY_POSITION[0] - CAMERA_POSITION[0] - WIDTH*.5 + WIDTH*.2 # adding moves to the left
     if abs(x) > WIDTH*.4:
-        CAMERA_POSITION[0] += x / 10
-        # CAMERA_POSITION[0] = max(CAMERA_POSITION[0], 0)
-    DISPLAY_CAMERA_POSITION[0] += (CAMERA_POSITION[0] - DISPLAY_CAMERA_POSITION[0]) / 5
+        new_x = WIDTH*.4*u.sign(x)
+        CAMERA_POSITION[0] = CURSOR_DISPLAY_POSITION[0] - new_x - WIDTH*.5 + WIDTH*.2
+    DISPLAY_CAMERA_POSITION[0] += (CAMERA_POSITION[0] - DISPLAY_CAMERA_POSITION[0]) / SCROLL_INTERPOLATION
 
     y = CURSOR_DISPLAY_POSITION[1] - CAMERA_POSITION[1] - HEIGHT*.5 + 120 #arbitrary (removing the initial margin)
     if abs(y) > HEIGHT*.35:
-        CAMERA_POSITION[1] += y / 10
-    DISPLAY_CAMERA_POSITION[1] += (CAMERA_POSITION[1] - DISPLAY_CAMERA_POSITION[1]) / 5
+        new_y = HEIGHT * 0.35*u.sign(y)
+        CAMERA_POSITION[1] = CURSOR_DISPLAY_POSITION[1] - new_y - HEIGHT * 0.5 + 120
+    DISPLAY_CAMERA_POSITION[1] += (CAMERA_POSITION[1] - DISPLAY_CAMERA_POSITION[1]) / SCROLL_INTERPOLATION
 
 def handle_writing():
     global history, FILE_CONTENT, CURSOR_POSITION, previous_file, SELECTION, selecting
@@ -240,26 +237,30 @@ def handle_interactions():
     cl.draw_text(text_display_surfaces, color_surfaces_list, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize(), (WIDTH, HEIGHT))
 
 def load_settings():
-    global FONT_SIZE, FONT_WIDTH, font, bg, CARET, wheel_speed
-    with open(f"{db.config_path}/settings.json", "r") as fp:
+    global FONT_SIZE, FONT_WIDTH, font, bg, CARET, wheel_speed, CARET_COLOR, CARET_INTERPOLATION, SCROLL_INTERPOLATION
+    with open(f"{g.themes_path}/settings.json", "r") as fp:
         s = json.load(fp)
         FONT_SIZE = max(5, (s["font size"] // 5) * 5)
         CARET = s["caret"]
+        CARET_COLOR = s["caret color"]
+        CARET_INTERPOLATION = s["caret interpolation"]
+        SCROLL_INTERPOLATION = s["scroll interpolation"]
         FONT_WIDTH = (FONT_SIZE * 3) / 5
-        font = pg.Font(f"{db.assets_path}/font.ttf", FONT_SIZE)
+        font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
         bg = s["bg color"]
         cl.default_color = s["font color"]
         wheel_speed = s["scroll speed"]
 
-font_small = pg.Font(f"{db.assets_path}/font.ttf", 20)
+font_small = pg.Font(f"{g.assets_path}/font.ttf", 20)
 db.load_settings = load_settings
 load_settings()
 
 CURSOR_POSITION = (0,0)
 
 def open_file(file):
+    history.clear()
     global FILE_CONTENT, CURSOR_POSITION, FILE, file_extention, interactions, colors
-    with open(f"{db.config_path}/default_theme.json", "r") as fp:
+    with open(f"{g.markups_path}/_base.json", "r") as fp:
         colors = json.load(fp)
     if file != "console":
         FILE = file
@@ -277,24 +278,25 @@ def open_file(file):
                 FILE_CONTENT = ["",]
                 CURSOR_POSITION = [0,0]
 
-        markup_json = f"{db.markups_path}/{file_extention}.json"
+        markup_json = f"{g.markups_path}/{file_extention}.json"
 
         if os.path.exists(markup_json):
-            with open(f"{db.markups_path}/any.json", "r") as fp:
+            with open(f"{g.markups_path}/_any.json", "r") as fp:
                 [colors.append(color) for color in json.load(fp)]
             with open(markup_json, "r") as fp:
                 [colors.append(color) for color in json.load(fp)]
 
-        with open(f"{db.config_path}/interactions.json", "r") as fp:
+        with open(f"{g.config_path}/interactions.json", "r") as fp:
             interactions = json.load(fp)
         try:
             os.chdir(os.path.dirname(file))
             FILE = os.path.basename(file)
+            print("CWD has been changed")
         except OSError:
             FILE = os.path.basename(file)
-            print("Failed to open file")
+            print("CWD is already set")
     else:
-        with open(f"{db.config_path}/interactions.json", "r") as fp:
+        with open(f"{g.config_path}/interactions.json", "r") as fp:
             interactions = json.load(fp)
         CURSOR_POSITION = [7,0]
         u.save(FILE, FILE_CONTENT)
@@ -305,95 +307,95 @@ db.open_file = open_file
 open_file(FILE)
 
 FPS = 60
-try:
-    while c.loop(FPS, bg):
-        c.set_title(f"Monkey Editor - {VERSION} - {FILE}")
-        if c.is_updating_sizes():
-            update_sizes()
-        if c.ctrl():
-            if c.key_clicked("s"):
-                u.save(FILE, FILE_CONTENT)
-            if (offset := c.key_clicked(pg.K_PLUS) - c.key_clicked(pg.K_MINUS)):
-                _old_size = font.get_linesize()
-                FONT_SIZE += offset * 5
-                FONT_SIZE = max(5, (FONT_SIZE // 5) * 5)
-                FONT_WIDTH = (FONT_SIZE * 3) / 5
-                font = pg.Font(f"{db.assets_path}/font.ttf", FONT_SIZE)
-                _new_size = font.get_linesize()
-                for idx, surface in enumerate(text_display_surfaces):
-                    print("changing size")
-                    # old.x : --new.x = old.y : new.y = 
-                    text_display_surfaces[idx] = pg.transform.scale(surface, (surface.get_size()[0]*_new_size/_old_size, _new_size))
-                    for color in color_surfaces_list:
-                        color[idx] = pg.transform.scale(color[idx], (surface.get_size()[0]*_new_size/_old_size, _new_size))
+# try:
+while c.loop(FPS, bg):
+    c.set_title(f"Monkey Editor - {VERSION} - {FILE}")
+    if c.is_updating_sizes():
+        update_sizes()
+    if c.ctrl():
+        if c.key_clicked("s"):
+            u.save(FILE, FILE_CONTENT)
+        if (offset := c.key_clicked(pg.K_PLUS) - c.key_clicked(pg.K_MINUS)):
+            _old_size = font.get_linesize()
+            FONT_SIZE += offset * 5
+            FONT_SIZE = max(5, (FONT_SIZE // 5) * 5)
+            FONT_WIDTH = (FONT_SIZE * 3) / 5
+            font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
+            _new_size = font.get_linesize()
+            for idx, surface in enumerate(text_display_surfaces):
+                print("changing size")
+                # old.x : --new.x = old.y : new.y = 
+                text_display_surfaces[idx] = pg.transform.scale(surface, (surface.get_size()[0]*_new_size/_old_size, _new_size))
+                for color in color_surfaces_list:
+                    color[idx] = pg.transform.scale(color[idx], (surface.get_size()[0]*_new_size/_old_size, _new_size))
 
 
 
-        handle_cursor_movement()
-        handle_writing()
-        handle_interactions()
+    handle_cursor_movement()
+    handle_writing()
+    handle_interactions()
+    c.text(
+        CARET,
+        (CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], CURSOR_DISPLAY_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]),
+        color = CARET_COLOR,
+        font = font,
+    )
+
+    DEBUG += c.key_clicked(pg.K_F3)
+    DEBUG = DEBUG % 3
+    if DEBUG:
+        c.debug_list(
+            f"Mouse Position: {c.mouse_position()}",
+            f"Fps: {c.get_FPS()}",
+            f"Perfomance: {1/c.get_delta() * 100}%",
+            f"Color buffers: {len(colored)}",
+            f"Cursor X,Y : {CURSOR_POSITION}",
+            f"Selection : {SELECTION} - {selecting}",
+            f"Font Size : {FONT_SIZE}",
+            # f"history:",
+            # *history[-32:],
+            font = font_small,
+        )
         c.text(
             CARET,
-            (CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], CURSOR_DISPLAY_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]),
-            color = [150, 255, 150],
+            (ACTUAL_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], ACTUAL_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]),
+            color = "white",
             font = font,
         )
 
-        DEBUG += c.key_clicked(pg.K_F3)
-        DEBUG = DEBUG % 3
-        if DEBUG:
-            c.debug_list(
-                f"Mouse Position: {c.mouse_position()}",
-                f"Fps: {c.get_FPS()}",
-                f"Perfomance: {1/c.get_delta() * 100}%",
-                f"Color buffers: {len(colored)}",
-                f"Cursor X,Y : {CURSOR_POSITION}",
-                f"Selection : {SELECTION} - {selecting}",
-                f"Font Size : {FONT_SIZE}",
-                # f"history:",
-                # *history[-32:],
-                font = font_small,
-            )
-            c.text(
-                CARET,
-                (ACTUAL_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], ACTUAL_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]),
-                color = "white",
-                font = font,
-            )
+    if DEBUG == 2:
+        c.debug_list(
+            "        - FILE",
+            *["\""+line.replace(" ", ".")+"\"" for line in FILE_CONTENT],
+            font = font_small,
+            position=(WIDTH*.5, 0),
+            color="cyan"
+        )
+        c.debug_list(
+            "DISPLAY",
+            *["\""+line.replace(" ", ".")+"\"" for line in display],
+            font = font_small,
+            position=(WIDTH*.5, 0)
+        )
 
-        if DEBUG == 2:
-            c.debug_list(
-                "        - FILE",
-                *["\""+line.replace(" ", ".")+"\"" for line in FILE_CONTENT],
-                font = font_small,
-                position=(WIDTH*.5, 0),
-                color="cyan"
-            )
-            c.debug_list(
-                "DISPLAY",
-                *["\""+line.replace(" ", ".")+"\"" for line in display],
-                font = font_small,
-                position=(WIDTH*.5, 0)
-            )
+    if c.ctrl() and c.key_clicked("o"):
+        CURSOR_POSITION = [7,0]
+        u.save(FILE, FILE_CONTENT)
+        FILE = "console"
+        FILE_CONTENT = ["..cmd:>",]
+        init_interactions()
+    if FILE == "console" and not "..cmd:>" in FILE_CONTENT[0]:
+        CURSOR_POSITION = [7,0]
+        FILE_CONTENT = ["..cmd:>",]
+        init_interactions()
+    if not (c.get_frames() % (1*30*60)):
+        u.save(FILE, FILE_CONTENT)
 
-        if c.ctrl() and c.key_clicked("o"):
-            CURSOR_POSITION = [7,0]
-            u.save(FILE, FILE_CONTENT)
-            FILE = "console"
-            FILE_CONTENT = ["..cmd:>",]
-            init_interactions()
-        if FILE == "console" and not "..cmd:>" in FILE_CONTENT[0]:
-            CURSOR_POSITION = [7,0]
-            FILE_CONTENT = ["..cmd:>",]
-            init_interactions()
-        if not (c.get_frames() % (1*30*60)):
-            u.save(FILE, FILE_CONTENT)
-
-        if c.key_clicked(pg.K_F5) and c.key_pressed(pg.K_F5) and not FILE == "console":
-            u.save(FILE, FILE_CONTENT)
-            db.debug(FILE)
-except Exception as e:
-    print(f"An error occurred: {e}")
-    # u.save(FILE, FILE_CONTENT)
+    if c.key_clicked(pg.K_F5) and c.key_pressed(pg.K_F5) and not FILE == "console":
+        u.save(FILE, FILE_CONTENT)
+        db.debug(FILE)
+# except None as e:
+#     print(f"An error occurred: {e}")
+#     # u.save(FILE, FILE_CONTENT)
 u.save(FILE, FILE_CONTENT)
 print("Closing succesfully.")
