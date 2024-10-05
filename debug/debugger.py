@@ -44,6 +44,13 @@ def call(command, error: str = -1, _cwd=os.getcwd(), _shell=0):
         console.push("Error:", str(e))
         return False
 
+def t_call(*args, **kwargs):
+    thread = t.Thread(target=call,
+                      args=args,
+                      kwargs=kwargs)
+    thread.start()
+
+
 def debug(file_name):
     global commands_file
     file_name = file_name.replace("\"","")
@@ -65,19 +72,10 @@ def debug(file_name):
             cpp = commands["cpp"]
             if call(cpp, _cwd=os.getcwd()):
                 console.push(f"Compilation successful... running {name}.exe")
-                thread = t.Thread(target=call,
-                                  args=[
-                                      f"start .\\{name}",
-                                  ],
-                                  kwargs={
-                                      "_cwd" : os.getcwd(),
-                                      "_shell" : 1, 
-                                  })
-                thread.start()
-                # call(f"start .\\{name}", _cwd=os.getcwd(), _shell=1)
+                t_call(f"start .\\{name}", _cwd=os.getcwd(), _shell=1)
         case "py":
             py = commands["py"]
-            call(py, _cwd=os.getcwd(), _shell=1)
+            t_call(py, _cwd=os.getcwd(), _shell=1)
         case "html":
             html = commands["html"]
             console.push(f"opening {html} in default browser.")
