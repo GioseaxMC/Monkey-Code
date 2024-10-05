@@ -39,7 +39,6 @@ def add_to_path(directory):
     if current_path := get_user_path():
         if directory.lower() not in current_path.lower().split(";") or 0:
             command = f"setx PATH \"{current_path};{directory}\"".replace("/","\\")
-            print(command)
             sb.call(command)
             print(f"{directory} added to PATH.")
         else:

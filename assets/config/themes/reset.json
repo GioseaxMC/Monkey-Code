@@ -7,5 +7,7 @@
     "scroll speed" : 5,
     "scroll interpolation" : 5,
     "caret interpolation" : 3,
-    "highlight" : 1
+    "highlight" : 1,
+    "consoleLen" : 200,
+    "consoleLines" : 10
 }

@@ -6,6 +6,7 @@ import text_utils.interactions as cl
 import json
 from pprint import pprint as pp
 import debug.debugger as db
+import debug.console as cons
 import sys
 import os
 import globals as g
@@ -29,12 +30,14 @@ SELECTION = [[0,0], [0,0]]
 selecting = 0
 display_edits: list = []
 edits = w.edits
+font: pg.Font
 
 with open(f"{g.config_path}/info.txt", "r") as fp:
     info = fp.read().split("\n")
     VERSION = info[0]
 
 c.window(1290, 720, title = f"{NAME} - loading", smallest_window_sizes=(480, 270), icon=f"{g.assets_path}/icon.png")
+cons.bar = c.sprite([c.rectangle(1,1,"white"),], top_left=0)
 
 pg.key.set_repeat(500, 30)
 
@@ -43,14 +46,16 @@ def update_sizes():
     WIDTH, HEIGHT = c.screen_size()
     CENTER = WIDTH//2, HEIGHT/2
     MARGINS = WIDTH*.15, 100
-update_sizes()
 
 def handle_cursor_movement():
     global ACTUAL_POSITION, CURSOR_POSITION, CURSOR_DISPLAY_POSITION, SELECTION, selecting
     #handle selection logic
+    wheel = 0
+    if c.mouse_position()[1] < cons.bar.pos_Y:
+        wheel = c.get_wheel()
     if c.key_clicked(pg.K_ESCAPE):
         selecting = 0
-    offset = c.key_clicked(pg.K_RIGHT) - c.key_clicked(pg.K_LEFT) - (c.get_wheel() * c.shift())
+    offset = c.key_clicked(pg.K_RIGHT) - c.key_clicked(pg.K_LEFT) - (wheel * c.shift())
     moved = 0
     if c.get_clicked_key() in w.MOVEMENT+(pg.K_END, pg.K_HOME):
         if SELECTION[0] == SELECTION[1]:
@@ -116,7 +121,7 @@ def handle_cursor_movement():
     if c.key_pressed(pg.K_LALT):
         w.move(FILE_CONTENT, CURSOR_POSITION, selecting, SELECTION, (c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP)))
     else:
-        CURSOR_POSITION[1] += c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP) - (c.get_wheel() * wheel_speed * (not c.shift()))
+        CURSOR_POSITION[1] += c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP) - (wheel * wheel_speed * (not c.shift()))
         if CURSOR_POSITION[1] >= len(display):
             CURSOR_POSITION[0] = len(display[-1])
         if CURSOR_POSITION[1] < 0:
@@ -142,35 +147,40 @@ def draw_selection():
                 sorted_sel = sorted(SELECTION, key=lambda x: x[1])
                 for global_line, local_line in enumerate(range(sorted_sel[1][1]-sorted_sel[0][1]+1), sorted_sel[0][1]):
                     if local_line == 0:
-                        x = (1+len(display[global_line]) - sorted_sel[0][0])
-                        surface = c.rounded_rectangle(x*FONT_WIDTH, _size, 14, _color)
-                        c.blit(surface, (sorted_sel[0][0]*FONT_WIDTH+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1]))
+                        posx = (1+len(display[global_line]) - sorted_sel[0][0])
+                        surface = c.rounded_rectangle(posx*FONT_WIDTH, _size, 14, _color)
+                        position = (sorted_sel[0][0]*FONT_WIDTH+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1])
                     elif global_line == sorted_sel[1][1]:
-                        x = (sorted_sel[1][0])
-                        surface = c.rounded_rectangle(x*FONT_WIDTH, _size, 14, _color)
-                        c.blit(surface, (MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1]))
+                        posx = (sorted_sel[1][0])
+                        surface = c.rounded_rectangle(posx*FONT_WIDTH, _size, 14, _color)
+                        position = (MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1])
                     else:
-                        x = (1+len(display[global_line]))
-                        surface = c.rounded_rectangle(x*FONT_WIDTH, _size, 14, _color)
-                        c.blit(surface, (MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1]))
+                        posx = (1+len(display[global_line]))
+                        surface = c.rounded_rectangle(posx*FONT_WIDTH, _size, 14, _color)
+                        position = (MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1])
+                    if position[1] < HEIGHT - (HEIGHT - cons.bar.pos_Y)-_size:
+                        c.blit(surface, position)
             elif SELECTION[0][0] - SELECTION[1][0]:
                 sorted_sel = sorted(SELECTION, key=lambda x: x[0])
                 surface = c.rounded_rectangle((sorted_sel[1][0] - sorted_sel[0][0]) * FONT_WIDTH, _size, 14, _color)
-                c.blit(surface, ((sorted_sel[0][0])*FONT_WIDTH+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], SELECTION[0][1]*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1]))
+                position = ((sorted_sel[0][0])*FONT_WIDTH+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], SELECTION[0][1]*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1])
+                if position[1] < HEIGHT - (HEIGHT - cons.bar.pos_Y)-_size:
+                    c.blit(surface, position)
         except IndexError:
-            print("waiting for threads...")
+            cons.push("waiting for threads...")
 
 def handle_cursor_position():
+    display_height = HEIGHT - (HEIGHT - cons.bar.pos_Y)
     x = CURSOR_DISPLAY_POSITION[0] - CAMERA_POSITION[0] - WIDTH*.5 + WIDTH*.2 # adding moves to the left
     if abs(x) > WIDTH*.4:
         new_x = WIDTH*.4*u.sign(x)
         CAMERA_POSITION[0] = CURSOR_DISPLAY_POSITION[0] - new_x - WIDTH*.5 + WIDTH*.2
     DISPLAY_CAMERA_POSITION[0] += (CAMERA_POSITION[0] - DISPLAY_CAMERA_POSITION[0]) / SCROLL_INTERPOLATION
 
-    y = CURSOR_DISPLAY_POSITION[1] - CAMERA_POSITION[1] - HEIGHT*.5 + 120 #arbitrary (removing the initial margin)
-    if abs(y) > HEIGHT*.35:
-        new_y = HEIGHT * 0.35*u.sign(y)
-        CAMERA_POSITION[1] = CURSOR_DISPLAY_POSITION[1] - new_y - HEIGHT * 0.5 + 120
+    y = CURSOR_DISPLAY_POSITION[1] - CAMERA_POSITION[1] - display_height*.5 + 120 #arbitrary (removing the initial margin)
+    if abs(y) > display_height*.35:
+        new_y = display_height * 0.35*u.sign(y)
+        CAMERA_POSITION[1] = CURSOR_DISPLAY_POSITION[1] - new_y - display_height * 0.5 + 120
     DISPLAY_CAMERA_POSITION[1] += (CAMERA_POSITION[1] - DISPLAY_CAMERA_POSITION[1]) / SCROLL_INTERPOLATION
 
 def handle_writing():
@@ -238,22 +248,29 @@ def handle_interactions():
 
 def load_settings():
     global FONT_SIZE, FONT_WIDTH, font, bg, CARET, wheel_speed, CARET_COLOR, CARET_INTERPOLATION, SCROLL_INTERPOLATION, DO_HIGHLIGHTING
-    with open(f"{g.themes_path}/settings.json", "r") as fp:
+    with open(f"{g.themes_path}/reset.json", "r") as fp:
         s = json.load(fp)
-        FONT_SIZE = max(5, (s["font size"] // 5) * 5)
-        CARET = s["caret"]
-        CARET_COLOR = s["caret color"]
-        CARET_INTERPOLATION = max(1, s["caret interpolation"])
-        SCROLL_INTERPOLATION = max(1, s["scroll interpolation"])
-        DO_HIGHLIGHTING = s["highlight"]
-        FONT_WIDTH = (FONT_SIZE * 3) / 5
-        font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
-        bg = s["bg color"]
-        cl.default_color = s["font color"]
-        wheel_speed = s["scroll speed"]
+    with open(f"{g.themes_path}/settings.json", "r") as fp:
+        s.update(json.load(fp))
+    FONT_SIZE = max(5, (s["font size"] // 5) * 5)
+    CARET = s["caret"]
+    CARET_COLOR = s["caret color"]
+    CARET_INTERPOLATION = max(1, s["caret interpolation"])
+    SCROLL_INTERPOLATION = max(1, s["scroll interpolation"])
+    DO_HIGHLIGHTING = s["highlight"]
+    FONT_WIDTH = (FONT_SIZE * 3) / 5
+    font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
+    bg = s["bg color"]
+    cl.default_color = s["font color"]
+    wheel_speed = s["scroll speed"]
+    cons.MAX_LENGHT = s["consoleLen"]
+    cons.MAX_LINES = s["consoleLines"]
+    cons.init(CENTER, WIDTH, HEIGHT, bg)
 
 font_small = pg.Font(f"{g.assets_path}/font.ttf", 20)
 db.load_settings = load_settings
+
+update_sizes()
 load_settings()
 
 CURSOR_POSITION = (0,0)
@@ -293,10 +310,10 @@ def open_file(file):
         try:
             os.chdir(os.path.dirname(file))
             FILE = os.path.basename(file)
-            print("CWD has been changed")
+            cons.push("CWD has been changed")
         except OSError:
             FILE = os.path.basename(file)
-            print("CWD is already set")
+            cons.push("CWD is already set")
         if not DO_HIGHLIGHTING:
             colors[:] = _base_colors
             del _base_colors
@@ -314,14 +331,15 @@ open_file(FILE)
 FPS = 60
 error = ""
 while c.loop(FPS, bg):
-    try:
+    # try:
         c.set_title(f"{NAME} - {VERSION} - {FILE}")
         if c.is_updating_sizes():
             update_sizes()
+            cons.init(CENTER, WIDTH, HEIGHT, bg)
         if c.ctrl():
             if c.key_clicked("s"):
                 u.save(FILE, FILE_CONTENT)
-                print("File saved.")
+                cons.push("File saved.")
             if (offset := c.key_clicked(pg.K_PLUS) - c.key_clicked(pg.K_MINUS)):
                 _old_size = font.get_linesize()
                 FONT_SIZE += offset * 5
@@ -334,12 +352,16 @@ while c.loop(FPS, bg):
         handle_cursor_movement()
         handle_writing()
         handle_interactions()
-        c.text(
-            CARET,
-            (CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], CURSOR_DISPLAY_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]),
-            color = CARET_COLOR,
-            font = font,
-        )
+        cons.update(cl.default_color, (WIDTH, HEIGHT))
+
+        height = CURSOR_DISPLAY_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]
+        if height < cons.bar.pos_Y-font.get_linesize()-12:
+            c.text(
+                CARET,
+                (CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], height),
+                color = CARET_COLOR,
+                font = font,
+            )
 
         DEBUG += c.key_clicked(pg.K_F3)
         DEBUG = DEBUG % 3
@@ -394,12 +416,12 @@ while c.loop(FPS, bg):
         if c.key_clicked(pg.K_F5) and c.key_pressed(pg.K_F5) and not FILE == "console":
             u.save(FILE, FILE_CONTENT)
             db.debug(FILE)
-    except Exception as e:
-        if e == error:
-            print("Closing to avoid catch looping.")
-            break
-        else:
-            error = e
-            print(f"An error occurred: {e}")
+    # except Exception as e:
+    #     if e == error:
+    #         print("Closing to avoid catch looping.")
+    #         break
+    #     else:
+    #         error = e
+    #         print(f"An error occurred: {e}")
 u.save(FILE, FILE_CONTENT)
 print("Closing succesfully.")

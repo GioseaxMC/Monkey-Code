@@ -2,6 +2,7 @@ import pygame_canvas as c
 import regex as re
 from pprint import pprint as pp
 from pygame_canvas import pygame as pg
+import debug.console as cons
 
 default_color = [200, 200, 200]
 
@@ -94,14 +95,14 @@ def draw_text(display, colored_lines, MARGINS, DISPLAY_POS, font_height, S):
     _cond: bool = 0
     for idx, line in enumerate(display):
         height = MARGINS[1]-DISPLAY_POS[1]+(idx*font_height)
-        if _cond or abs(height-S[1]//2) < S[1]//2-_margin_y:
+        if _cond or abs(height-S[1]//2) < S[1]//2-_margin_y and height < cons.bar.pos_Y-font_height-10:
             c.blit(
                 line,
                 (MARGINS[0]-DISPLAY_POS[0], height)
             )
     for idx, line in enumerate(colored_lines):
         height = MARGINS[1]-DISPLAY_POS[1]+(idx*font_height)
-        if _cond or abs(height-S[1]//2) < S[1]//2-_margin_y:
+        if _cond or abs(height-S[1]//2) < S[1]//2-_margin_y and height < cons.bar.pos_Y-font_height-10:
             c.blit(
                 line,
                 (MARGINS[0]-DISPLAY_POS[0], height)
