@@ -12,7 +12,7 @@ line_size = font.get_linesize()
 bar: c.sprite
 do_update = 0
 index = 0
-log = [f"{randint(0,999999999)}" for i in range(300)]
+log = []
 moving_bar = 0
 
 render = font.render("\n".join(log[-MAX_LINES:]), 1, "white")

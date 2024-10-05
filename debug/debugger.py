@@ -6,6 +6,7 @@ import json
 import shutil
 import globals as g
 from . import console
+import threading as t
 
 open_file = lambda file: bool
 load_settings = lambda: None
@@ -30,10 +31,10 @@ def parse_command(command_string):
 with open(f"{g.assets_path}/compilers/commands.json", "r") as fp:
     commands_file = json.load(fp)
 
-def call(command, error: str = -1, _cwd=os.getcwd()):
+def call(command, error: str = -1, _cwd=os.getcwd(), _shell=0):
     try:
         console.push("running:",command)
-        result = sb.run(command, cwd=_cwd, capture_output=1, text=1, check=0)
+        result = sb.run(command, cwd=_cwd, capture_output=1, text=1, check=0, shell=_shell)
         console.push(as_list=result.stdout.splitlines())
         if len(result.stderr.splitlines()):
             console.push(as_list=result.stderr.splitlines())
@@ -64,10 +65,19 @@ def debug(file_name):
             cpp = commands["cpp"]
             if call(cpp, _cwd=os.getcwd()):
                 console.push(f"Compilation successful... running {name}.exe")
-                call(f".\\{name}.exe", _cwd=os.getcwd())
+                thread = t.Thread(target=call,
+                                  args=[
+                                      f"start .\\{name}",
+                                  ],
+                                  kwargs={
+                                      "_cwd" : os.getcwd(),
+                                      "_shell" : 1, 
+                                  })
+                thread.start()
+                # call(f"start .\\{name}", _cwd=os.getcwd(), _shell=1)
         case "py":
             py = commands["py"]
-            call(py, _cwd=os.getcwd())
+            call(py, _cwd=os.getcwd(), _shell=1)
         case "html":
             html = commands["html"]
             console.push(f"opening {html} in default browser.")

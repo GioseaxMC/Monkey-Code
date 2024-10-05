@@ -331,7 +331,7 @@ open_file(FILE)
 FPS = 60
 error = ""
 while c.loop(FPS, bg):
-    # try:
+    try:
         c.set_title(f"{NAME} - {VERSION} - {FILE}")
         if c.is_updating_sizes():
             update_sizes()
@@ -416,12 +416,12 @@ while c.loop(FPS, bg):
         if c.key_clicked(pg.K_F5) and c.key_pressed(pg.K_F5) and not FILE == "console":
             u.save(FILE, FILE_CONTENT)
             db.debug(FILE)
-    # except Exception as e:
-    #     if e == error:
-    #         print("Closing to avoid catch looping.")
-    #         break
-    #     else:
-    #         error = e
-    #         print(f"An error occurred: {e}")
+    except Exception as e:
+        if e == error:
+            print("Closing to avoid catch looping.")
+            break
+        else:
+            error = e
+            print(f"An error occurred: {e}")
 u.save(FILE, FILE_CONTENT)
 print("Closing succesfully.")
