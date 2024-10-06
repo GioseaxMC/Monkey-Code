@@ -245,7 +245,7 @@ def write(file: list[str], display: list[str], cursor: tuple[int, int], sele, se
                 cursor[1] = len(display)-1
             cursor[0] = len(display[cursor[1]])
 
-        elif key == pg.K_TAB:
+        elif not c.ctrl() and key == pg.K_TAB:
             _tab(file, cursor, selecting, sele)
 
         elif c.ctrl() and key == pg.K_v:

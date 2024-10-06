@@ -50,7 +50,6 @@ def t_call(*args, **kwargs):
                       kwargs=kwargs)
     thread.start()
 
-
 def debug(file_name):
     global commands_file
     file_name = file_name.replace("\"","")

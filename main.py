@@ -48,8 +48,10 @@ def update_sizes():
     MARGINS = WIDTH*.15, 100
 
 def handle_cursor_movement():
-    global ACTUAL_POSITION, CURSOR_POSITION, CURSOR_DISPLAY_POSITION, SELECTION, selecting
+    global ACTUAL_POSITION, CURSOR_POSITION, CURSOR_DISPLAY_POSITION, SELECTION, selecting, selecting_file
     #handle selection logic
+    if selecting_file:
+        return
     wheel = 0
     if c.mouse_position()[1] < cons.bar.pos_Y:
         wheel = c.get_wheel()
@@ -276,6 +278,9 @@ load_settings()
 CURSOR_POSITION = (0,0)
 
 def open_file(file):
+    global SELECTION, selecting
+    SELECTION = [[0,0],[0,0]]
+    selecting = 0
     history.clear()
     global FILE_CONTENT, CURSOR_POSITION, FILE, file_extention, interactions, colors
     with open(f"{g.markups_path}/_base.json", "r") as fp:
@@ -330,29 +335,63 @@ open_file(FILE)
 
 FPS = 60
 error = ""
+selecting_file = 0
+dir_index = 0
 while c.loop(FPS, bg):
     try:
         c.set_title(f"{NAME} - {VERSION} - {FILE}")
         if c.is_updating_sizes():
             update_sizes()
             cons.init(CENTER, WIDTH, HEIGHT, bg)
+
         if c.ctrl():
             if c.key_clicked("s"):
                 u.save(FILE, FILE_CONTENT)
                 cons.push("File saved.")
             if (offset := c.key_clicked(pg.K_PLUS) - c.key_clicked(pg.K_MINUS)):
-                _old_size = font.get_linesize()
                 FONT_SIZE += offset * 5
                 FONT_SIZE = max(5, (FONT_SIZE // 5) * 5)
                 FONT_WIDTH = (FONT_SIZE * 3) / 5
                 font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
-                _new_size = font.get_linesize()
                 w.edits = [{ "type" : "set", "line" : line} for line in range(len(display))]
 
         handle_cursor_movement()
         handle_writing()
         handle_interactions()
         cons.update(cl.default_color, (WIDTH, HEIGHT))
+
+        if c.ctrl():
+            if c.key_clicked(pg.K_TAB) and not selecting_file:
+                selecting_file = 1
+                dir_files = list(filter(lambda x: os.path.isfile(x), os.scandir(".")))
+                dir_files = [item.name for item in dir_files]
+                try:
+                    dir_files.remove(FILE)
+                except ValueError:
+                    ...
+                dir_files.insert(0, FILE)
+                print(dir_files)
+                dir_index = 0
+            elif selecting_file:
+                if c.key_clicked(pg.K_TAB):
+                    if c.shift():
+                        dir_index -= 1
+                    else:
+                        dir_index += 1
+                dir_index += (c.key_clicked(pg.K_DOWN)-c.key_clicked(pg.K_UP))
+                dir_index = dir_index % len(dir_files)
+                display_dirs = dir_files.copy()
+                display_dirs[dir_index] = "|> "+display_dirs[dir_index]
+                file_surface = c.rounded_rectangle(300, (len(dir_files)+1)*cons.font.get_linesize(), 13, cons.get_color(bg))
+                file_surface.blit(cons.font.render("\n".join(display_dirs), 1, cl.default_color), (font.get_linesize()//2, 10))
+                c.blit(file_surface, (CENTER[0]-150,20))
+        elif selecting_file:
+            to_open = dir_files[dir_index]
+            selecting_file = 0
+            if to_open != FILE: 
+                cons.push("Saving and opening file.")
+                u.save(FILE, FILE_CONTENT)
+                open_file(dir_files[dir_index])
 
         height = CURSOR_DISPLAY_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]
         if height < cons.bar.pos_Y-font.get_linesize()-12:
@@ -361,7 +400,7 @@ while c.loop(FPS, bg):
                 (CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], height),
                 color = CARET_COLOR,
                 font = font,
-            )
+        )
 
         DEBUG += c.key_clicked(pg.K_F3)
         DEBUG = DEBUG % 3
@@ -401,6 +440,8 @@ while c.loop(FPS, bg):
             )
         
         if c.ctrl() and c.key_clicked("o"):
+            selecting = 0
+            SELECTION = [[0,0], [0,0]]
             CURSOR_POSITION = [7,0]
             u.save(FILE, FILE_CONTENT)
             FILE = "console"
