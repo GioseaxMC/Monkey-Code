@@ -13,8 +13,9 @@ if getattr(sys, 'frozen', False):
     if os.getcwd() == os.path.dirname(app_path):
         u.add_to_path(os.getcwd())
         print("CURRENT WD:", os.path.dirname(app_path))
-        print(f"Added command \"monkey\" to path")
-        exit()
+        print(f"Added command \"monkey\" <file-name> to path")
+        os.system("pause")
+        sys.exit()
     # sys.stdout = open(os.devnull, 'w')
 else:
     app_path = os.path.abspath(__file__)

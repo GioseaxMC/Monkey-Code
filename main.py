@@ -15,6 +15,8 @@ NAME = "Monkey Code"
 
 try:
     FILE = sys.argv[1:][0]
+    if FILE == ".":
+        FILE = "console"
 except:
     FILE = "console"
 FILE_CONTENT = []
