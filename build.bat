@@ -4,7 +4,7 @@ set destination=".\assets\config\settings.json"
 echo Copying settings file...
 copy %source% %destination%
 
-pyinstaller main.py --onefile --icon="assets/icon.ico" --name="monkey"
+pyinstaller main.py --onefile --noconsole --icon="assets/icon.ico" --name="monkey"
 
 xcopy "./assets" "dist/assets" /E /I /Y
 xcopy "./dist" "%userprofile%/custom-tools/monkeyeditor" /E /I /Y
