@@ -12,6 +12,20 @@ open_file = lambda file: bool
 load_settings = lambda: None
 os.environ['PYDEVD_DISABLE_FILE_VALIDATION'] = '1'
 
+def check_syntax(code):
+    if os.path.exists(code):
+        with open(code, "r") as fp:
+            code = fp.read()
+        try:
+            # Attempt to compile the code
+            compiled_code = compile(code, '<string>', 'exec')
+            console.push("Code compiles successfully! 🎉")
+            return True
+        except SyntaxError as e:
+            console.push(f"Syntax Error: {e}")
+            return False
+    return False
+
 def parse_command(command_string):
     command_string = command_string + " fixer "
     # Use shlex.split to handle quoted arguments and spaces
@@ -74,7 +88,8 @@ def debug(file_name):
                 t_call(f"start .\\{name}", _cwd=os.getcwd(), _shell=1)
         case "py":
             py = commands["py"]
-            t_call(py, _cwd=os.getcwd(), _shell=1)
+            if check_syntax(file_name):
+                t_call(py, _cwd=os.getcwd(), _shell=1)
         case "html":
             html = commands["html"]
             console.push(f"opening {html} in default browser.")
@@ -132,6 +147,17 @@ def run(command):
                         default.update(new)
                     with open(f"{g.themes_path}/settings.json", "w") as fpa:
                         json.dump(default, fpa, indent=4)
+                case "make":
+                    if len(args) < 2:
+                        console.push("Invalid Syntax, expected 2 arguments, got 1")
+                        return
+                    if args[1] == "reset":
+                        console.push("Cannot overwrite standard settings.")
+                        return
+                    shutil.copy(f"{g.themes_path}/settings.json", f"{g.themes_path}/{args[1]}.json")
+                case "list":
+                    console.push("== Available themes ==")
+                    console.push("set load "+("\nset load ".join(os.listdir(g.themes_path))+"\n").replace(".json\n", "\n"))
                     
                 case _:
                     set_settings(args)

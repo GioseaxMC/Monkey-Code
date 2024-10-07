@@ -17,7 +17,7 @@ update_display = lambda x: x
 popped_lines = 0
 
 def append(_append, content):
-    global history, edits, popped_lines
+    global history, edits, popped_lines, selection
     if (not len(history) or history[-1] != content) and _append:
         content.update(
             {
@@ -153,6 +153,36 @@ def _tab(file, cursor, selecting, sele):
     set_line(file, cursor[1], file[cursor[1]][:cursor[0]] + "    " + file[cursor[1]][cursor[0]:], cursor)
     cursor[0] += 4
 
+def add_tab_line(file, line, cursor):
+    set_line(file, line, "    " + file[line], cursor)
+
+def rem_tab_line(file, line, cursor):
+    if file[line][:4].isspace():
+        set_line(file, line, file[line][4:], cursor)
+        return 1
+    return 0
+
+def add_tab_for(file, cursor, selecing, sele: list):
+    ssort = sorted(sele, key=lambda x: x[1])
+    for line in range(ssort[1][1] - ssort[0][1] + 1):
+        line += ssort[0][1]
+        add_tab_line(file, line, cursor)
+    sele[0][0] += 4
+    sele[1][0] += 4
+    cursor[0] += 4
+
+def rem_tab_for(file, cursor, selecing, sele: list):
+    ssort = sorted(sele, key=lambda x: x[1])
+    moved_any = 0
+    for line in range(ssort[1][1] - ssort[0][1] + 1):
+        line += ssort[0][1]
+        if file[line][:4].isspace():
+            moved_any = rem_tab_line(file, line, cursor)
+    if moved_any:
+        sele[0][0] -= 4
+        sele[1][0] -= 4
+        cursor[0] -= 4
+
 def _paste(file, cursor, selecting, sele):
     if selecting[0]:
         remove_selection(file, sele, cursor)
@@ -203,11 +233,12 @@ def _backspace(file, cursor, selecting, sele):
             before, after = file[cursor[1]][:max(0, cursor[0])], file[cursor[1]][cursor[0]:]
             if before[-4:].isspace() and len(before[-4:]) == 4:
                 before = before[:-4]
-                cursor[0] -= 4
+                offset = 4
             else:
                 before = before[:-1]
-                cursor[0] -= 1
+                offset = 1
             set_line(file, cursor[1], before+after, cursor)
+            cursor[0] -= offset
         if cursor[0] < 0 and cursor[1] > 0:
             removed_row = pop_line(file, cursor[1], cursor)
             cursor[1] -= 1
@@ -246,7 +277,17 @@ def write(file: list[str], display: list[str], cursor: tuple[int, int], sele, se
             cursor[0] = len(display[cursor[1]])
 
         elif not c.ctrl() and key == pg.K_TAB:
-            _tab(file, cursor, selecting, sele)
+            if selecting[0]:
+                if c.shift():
+                    rem_tab_for(file, cursor, selecting, sele)
+                else:
+                    add_tab_for(file, cursor, selecting, sele)
+            else:
+                if c.shift():
+                    rem_tab_line(file, cursor[1], cursor)
+                    cursor[0] -= 4
+                else:
+                    _tab(file, cursor, selecting, sele)
 
         elif c.ctrl() and key == pg.K_v:
             _paste(file, cursor, selecting, sele)

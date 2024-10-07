@@ -19,8 +19,8 @@ render = font.render("\n".join(log[-MAX_LINES:]), 1, "white")
 
 def get_color(bg):
     if sum(bg)//3 > 128:
-        return [min(max(0,x+y), 255) for x,y in zip(bg, [-15,-15,-15])]
-    return [min(max(0,x+y), 255) for x,y in zip(bg, [15,15,15])]
+        return [min(max(0,x+y), 255) for x,y in zip(bg, [-20,-20,-20])]
+    return [min(max(0,x+y), 255) for x,y in zip(bg, [20,20,20])]
 
 
 def init(center, width, height, bg):

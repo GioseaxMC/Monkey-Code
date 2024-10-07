@@ -47,7 +47,7 @@ def update_sizes():
     global WIDTH, HEIGHT, CENTER, MARGINS
     WIDTH, HEIGHT = c.screen_size()
     CENTER = WIDTH//2, HEIGHT/2
-    MARGINS = WIDTH*.15, 100
+    MARGINS = WIDTH*.10, 100
 
 def handle_cursor_movement():
     global ACTUAL_POSITION, CURSOR_POSITION, CURSOR_DISPLAY_POSITION, SELECTION, selecting, selecting_file
@@ -143,30 +143,30 @@ def handle_cursor_movement():
 
 def draw_selection():
     if selecting:
-        _color = [40,40,40]
-        _size = font.get_linesize()+12
-        _offsetY = (FONT_SIZE/30)*4 - 8
+        _color = cons.get_color(bg)
+        _size = font.get_linesize()+2
+        _offsetY = -0
         try:
             if SELECTION[1][1] - SELECTION[0][1]:
                 sorted_sel = sorted(SELECTION, key=lambda x: x[1])
                 for global_line, local_line in enumerate(range(sorted_sel[1][1]-sorted_sel[0][1]+1), sorted_sel[0][1]):
                     if local_line == 0:
                         posx = (1+len(display[global_line]) - sorted_sel[0][0])
-                        surface = c.rounded_rectangle(posx*FONT_WIDTH, _size, 14, _color)
+                        surface = c.rectangle(posx*FONT_WIDTH, _size, _color)
                         position = (sorted_sel[0][0]*FONT_WIDTH+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1])
                     elif global_line == sorted_sel[1][1]:
                         posx = (sorted_sel[1][0])
-                        surface = c.rounded_rectangle(posx*FONT_WIDTH, _size, 14, _color)
+                        surface = c.rectangle(posx*FONT_WIDTH, _size, _color)
                         position = (MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1])
                     else:
                         posx = (1+len(display[global_line]))
-                        surface = c.rounded_rectangle(posx*FONT_WIDTH, _size, 14, _color)
+                        surface = c.rectangle(posx*FONT_WIDTH, _size, _color)
                         position = (MARGINS[0]-DISPLAY_CAMERA_POSITION[0], global_line*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1])
                     if position[1] < HEIGHT - (HEIGHT - cons.bar.pos_Y)-_size:
                         c.blit(surface, position)
             elif SELECTION[0][0] - SELECTION[1][0]:
                 sorted_sel = sorted(SELECTION, key=lambda x: x[0])
-                surface = c.rounded_rectangle((sorted_sel[1][0] - sorted_sel[0][0]) * FONT_WIDTH, _size, 14, _color)
+                surface = c.rectangle((sorted_sel[1][0] - sorted_sel[0][0]) * FONT_WIDTH, _size, _color)
                 position = ((sorted_sel[0][0])*FONT_WIDTH+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], SELECTION[0][1]*font.get_linesize()+_offsetY+MARGINS[1]-DISPLAY_CAMERA_POSITION[1])
                 if position[1] < HEIGHT - (HEIGHT - cons.bar.pos_Y)-_size:
                     c.blit(surface, position)
@@ -203,7 +203,6 @@ def handle_writing():
                     w.insert_line(FILE_CONTENT, item["line"], item["content"], CURSOR_POSITION, 0)
             update_display()
             CURSOR_POSITION = item["cursor"]
-
 
             if (not len(history)) or history[-1].get("id") != item.get("id"):
                 break
@@ -357,9 +356,9 @@ while c.loop(FPS, bg):
                 font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
                 w.edits = [{ "type" : "set", "line" : line} for line in range(len(display))]
 
+        handle_interactions()
         handle_cursor_movement()
         handle_writing()
-        handle_interactions()
         cons.update(cl.default_color, (WIDTH, HEIGHT))
 
         if c.ctrl():
@@ -372,7 +371,6 @@ while c.loop(FPS, bg):
                 except ValueError:
                     ...
                 dir_files.insert(0, FILE)
-                print(dir_files)
                 dir_index = 0
             elif selecting_file:
                 if c.key_clicked(pg.K_TAB):
