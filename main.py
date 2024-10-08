@@ -50,7 +50,8 @@ def update_sizes():
     MARGINS = WIDTH*.10, 100
 
 def handle_cursor_movement():
-    global ACTUAL_POSITION, CURSOR_POSITION, CURSOR_DISPLAY_POSITION, SELECTION, selecting, selecting_file
+    global ACTUAL_POSITION, CURSOR_POSITION, CURSOR_DISPLAY_POSITION, SELECTION, selecting, selecting_file, hidden_cursor_x
+    
     #handle selection logic
     if selecting_file:
         return
@@ -59,7 +60,7 @@ def handle_cursor_movement():
         wheel = c.get_wheel()
     if c.key_clicked(pg.K_ESCAPE):
         selecting = 0
-    offset = c.key_clicked(pg.K_RIGHT) - c.key_clicked(pg.K_LEFT) - (wheel * c.shift())
+    offset = c.key_clicked(pg.K_RIGHT) - c.key_clicked(pg.K_LEFT) - (wheel * c.shift()) + c.key_clicked(pg.K_END)
     moved = 0
     if c.get_clicked_key() in w.MOVEMENT+(pg.K_END, pg.K_HOME):
         if SELECTION[0] == SELECTION[1]:
@@ -104,7 +105,21 @@ def handle_cursor_movement():
                         break
         else:
             CURSOR_POSITION[0] += offset
+        hidden_cursor_x = CURSOR_POSITION[0]
 
+    key = c.get_clicked_key()
+    if key == pg.K_HOME:
+        if c.ctrl():
+            CURSOR_POSITION[1] = 0
+        CURSOR_POSITION[0] = 0
+        hidden_cursor_x = CURSOR_POSITION[0]
+    elif key == pg.K_END:
+        if c.ctrl():
+            CURSOR_POSITION[1] = len(display)-1
+        CURSOR_POSITION[0] = len(display[CURSOR_POSITION[1]])
+        hidden_cursor_x = CURSOR_POSITION[0]
+
+    
     if c.ctrl() and c.key_clicked("a"):
         selecting = 1
         SELECTION[0] = [0,0]
@@ -125,11 +140,15 @@ def handle_cursor_movement():
     if c.key_pressed(pg.K_LALT):
         w.move(FILE_CONTENT, CURSOR_POSITION, selecting, SELECTION, (c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP)))
     else:
-        CURSOR_POSITION[1] += c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP) - (wheel * wheel_speed * (not c.shift()))
-        if CURSOR_POSITION[1] >= len(display):
-            CURSOR_POSITION[0] = len(display[-1])
-        if CURSOR_POSITION[1] < 0:
-            CURSOR_POSITION[0] = 0
+        if offset := c.key_clicked(pg.K_DOWN) - c.key_clicked(pg.K_UP) - (wheel * wheel_speed * (not c.shift())):
+            CURSOR_POSITION[1] += offset
+            CURSOR_POSITION[0] = hidden_cursor_x
+            if CURSOR_POSITION[1] >= len(display):
+                CURSOR_POSITION[0] = len(display[-1])
+                hidden_cursor_x = CURSOR_POSITION[0]
+            if CURSOR_POSITION[1] < 0:
+                CURSOR_POSITION[0] = 0
+                hidden_cursor_x = CURSOR_POSITION[0]
         CURSOR_POSITION[1] = min(max(CURSOR_POSITION[1], 0), len(display)-1)
         CURSOR_POSITION[0] = min(max(CURSOR_POSITION[0], 0), len(display[CURSOR_POSITION[1]]))
 
@@ -139,6 +158,7 @@ def handle_cursor_movement():
     CURSOR_DISPLAY_POSITION[1] += (ACTUAL_POSITION[1] - CURSOR_DISPLAY_POSITION[1]) / CARET_INTERPOLATION
     if c.shift() and selecting:
         SELECTION[1] = CURSOR_POSITION.copy()
+
     handle_cursor_position()
 
 def draw_selection():
@@ -176,8 +196,8 @@ def draw_selection():
 def handle_cursor_position():
     display_height = HEIGHT - (HEIGHT - cons.bar.pos_Y)
     x = CURSOR_DISPLAY_POSITION[0] - CAMERA_POSITION[0] - WIDTH*.5 + WIDTH*.2 # adding moves to the left
-    if abs(x) > WIDTH*.4:
-        new_x = WIDTH*.4*u.sign(x)
+    if abs(x) > WIDTH*.3:
+        new_x = WIDTH*.3*u.sign(x)
         CAMERA_POSITION[0] = CURSOR_DISPLAY_POSITION[0] - new_x - WIDTH*.5 + WIDTH*.2
     DISPLAY_CAMERA_POSITION[0] += (CAMERA_POSITION[0] - DISPLAY_CAMERA_POSITION[0]) / SCROLL_INTERPOLATION
 
@@ -247,34 +267,35 @@ w.update_display = update_display
 def handle_interactions():
     update_display()
     draw_selection()
-    cl.draw_text(text_display_surfaces, color_surfaces, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize(), (WIDTH, HEIGHT))
+    cl.draw_text(text_display_surfaces, color_surfaces, MARGINS, DISPLAY_CAMERA_POSITION, font.get_linesize(), (WIDTH, HEIGHT), font, bg, CURSOR_POSITION)
 
-def load_settings():
+def load_settings(initializing = 0):
     global FONT_SIZE, FONT_WIDTH, font, bg, CARET, wheel_speed, CARET_COLOR, CARET_INTERPOLATION, SCROLL_INTERPOLATION, DO_HIGHLIGHTING
     with open(f"{g.themes_path}/reset.json", "r") as fp:
         s = json.load(fp)
     with open(f"{g.themes_path}/settings.json", "r") as fp:
         s.update(json.load(fp))
-    FONT_SIZE = max(5, (s["font size"] // 5) * 5)
+    FONT_SIZE = max(5, s["font size"])
     CARET = s["caret"]
     CARET_COLOR = s["caret color"]
     CARET_INTERPOLATION = max(1, s["caret interpolation"])
     SCROLL_INTERPOLATION = max(1, s["scroll interpolation"])
     DO_HIGHLIGHTING = s["highlight"]
-    FONT_WIDTH = (FONT_SIZE * 3) / 5
     font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
+    FONT_WIDTH, _ = font.size("-")
     bg = s["bg color"]
     cl.default_color = s["font color"]
     wheel_speed = s["scroll speed"]
-    cons.MAX_LENGHT = s["consoleLen"]
-    cons.MAX_LINES = s["consoleLines"]
+    if initializing:
+        cons.MAX_LENGHT = s["consoleLen"]
+        cons.MAX_LINES = s["consoleLines"]
     cons.init(CENTER, WIDTH, HEIGHT, bg)
 
 font_small = pg.Font(f"{g.assets_path}/font.ttf", 20)
 db.load_settings = load_settings
 
 update_sizes()
-load_settings()
+load_settings(1)
 
 CURSOR_POSITION = (0,0)
 
@@ -283,7 +304,7 @@ def open_file(file):
     SELECTION = [[0,0],[0,0]]
     selecting = 0
     history.clear()
-    global FILE_CONTENT, CURSOR_POSITION, FILE, file_extention, interactions, colors
+    global FILE_CONTENT, CURSOR_POSITION, FILE, file_extention, interactions, colors, hidden_cursor_x
     with open(f"{g.markups_path}/_base.json", "r") as fp:
         colors = json.load(fp)
         _base_colors = colors.copy()
@@ -326,10 +347,11 @@ def open_file(file):
     else:
         with open(f"{g.config_path}/interactions.json", "r") as fp:
             interactions = json.load(fp)
-        CURSOR_POSITION = [7,0]
+        CURSOR_POSITION = [len(g.cmd_string), 0]
         u.save(FILE, FILE_CONTENT)
         FILE = "console"
-        FILE_CONTENT = ["..cmd:>",]
+        FILE_CONTENT = [g.cmd_string,]
+    hidden_cursor_x = CURSOR_POSITION[0]
     init_interactions()
 db.open_file = open_file
 open_file(FILE)
@@ -350,10 +372,11 @@ while c.loop(FPS, bg):
                 u.save(FILE, FILE_CONTENT)
                 cons.push("File saved.")
             if (offset := c.key_clicked(pg.K_PLUS) - c.key_clicked(pg.K_MINUS)):
-                FONT_SIZE += offset * 5
-                FONT_SIZE = max(5, (FONT_SIZE // 5) * 5)
-                FONT_WIDTH = (FONT_SIZE * 3) / 5
+                FONT_SIZE += offset * 1
+                cons.push(F"Changing font size to: {FONT_SIZE}")
+                FONT_SIZE = max(5, FONT_SIZE)
                 font = pg.Font(f"{g.assets_path}/font.ttf", FONT_SIZE)
+                FONT_WIDTH, _ = font.size("-")
                 w.edits = [{ "type" : "set", "line" : line} for line in range(len(display))]
 
         handle_interactions()
@@ -382,7 +405,7 @@ while c.loop(FPS, bg):
                 dir_index = dir_index % len(dir_files)
                 display_dirs = dir_files.copy()
                 display_dirs[dir_index] = "|> "+display_dirs[dir_index]
-                file_surface = c.rounded_rectangle(300, (len(dir_files)+1)*cons.font.get_linesize(), 13, cons.get_color(bg))
+                file_surface = c.rounded_rectangle(300, (len(dir_files)+1)*cons.font.get_linesize(), 15, cons.get_color(bg))
                 file_surface.blit(cons.font.render("\n".join(display_dirs), 1, cl.default_color), (font.get_linesize()//2, 10))
                 c.blit(file_surface, (CENTER[0]-150,20))
         elif selecting_file:
@@ -440,20 +463,15 @@ while c.loop(FPS, bg):
             )
         
         if c.ctrl() and c.key_clicked("o"):
-            selecting = 0
-            SELECTION = [[0,0], [0,0]]
-            CURSOR_POSITION = [7,0]
             u.save(FILE, FILE_CONTENT)
-            FILE = "console"
-            FILE_CONTENT = ["..cmd:>",]
-            init_interactions()
-        if FILE == "console" and not "..cmd:>" in FILE_CONTENT[0]:
-            CURSOR_POSITION = [7,0]
-            FILE_CONTENT = ["..cmd:>",]
+            open_file("console")
+        if FILE == "console" and not g.cmd_string in FILE_CONTENT[0]:
+            CURSOR_POSITION = [len(g.cmd_string),0]
+            FILE_CONTENT = [g.cmd_string,]
             init_interactions()
         if not (c.get_frames() % (1*30*60)):
             u.save(FILE, FILE_CONTENT)
-
+            
         if c.key_clicked(pg.K_F5) and c.key_pressed(pg.K_F5) and not FILE == "console":
             u.save(FILE, FILE_CONTENT)
             db.debug(FILE)

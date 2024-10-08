@@ -90,15 +90,29 @@ def handle_colors(display: list, colors):
 
     return display, colored_files
 
-def draw_text(display, colored_lines, MARGINS, DISPLAY_POS, font_height, S):
+def draw_text(display, colored_lines, MARGINS, DISPLAY_POS, font_height, S, font, bg, cursor):
     _margin_y = -100
     _cond: bool = 0
+    _fontx, _ = font.size("-")
     for idx, line in enumerate(display):
         height = MARGINS[1]-DISPLAY_POS[1]+(idx*font_height)
         if _cond or abs(height-S[1]//2) < S[1]//2-_margin_y and height < cons.bar.pos_Y-font_height-10:
             c.blit(
                 line,
                 (MARGINS[0]-DISPLAY_POS[0], height)
+            )
+
+            nabs = abs(idx - cursor[1])
+            number = nabs if nabs else idx
+
+            number_offset = len(str(number))
+
+            c.text(
+                number,
+                (MARGINS[0]-DISPLAY_POS[0]-number_offset*_fontx-_fontx, height),
+                0,
+                cons.get_color(bg) if nabs else cons.get_color(cons.get_color(bg)),
+                font,
             )
     for idx, line in enumerate(colored_lines):
         height = MARGINS[1]-DISPLAY_POS[1]+(idx*font_height)

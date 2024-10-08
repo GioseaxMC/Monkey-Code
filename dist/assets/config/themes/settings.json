@@ -1,13 +1,25 @@
 {
-    "font size" : 25,
-    "font color" : [200,200,200],
-    "caret" : "_",
-    "caret color" : [150, 255, 150],
-    "bg color" : [25, 25, 25],
-    "scroll speed" : 5,
-    "scroll interpolation" : 5,
-    "caret interpolation" : 3,
-    "highlight" : 1,
-    "consoleLen" : 200,
-    "consoleLines" : 10
+    "font size": 17,
+    "font color": [
+        255,
+        255,
+        255
+    ],
+    "caret": "_",
+    "caret color": [
+        255,
+        255,
+        255
+    ],
+    "bg color": [
+        39,
+        40,
+        34
+    ],
+    "scroll speed": 5,
+    "scroll interpolation": 1,
+    "caret interpolation": 0,
+    "highlight": 1,
+    "consoleLen": 200,
+    "consoleLines": 10
 }

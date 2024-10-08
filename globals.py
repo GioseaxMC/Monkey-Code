@@ -2,6 +2,9 @@ import os
 import sys
 from text_utils import utils as u
 import string
+import platform
+
+cmd_string = f"{os.getlogin()}@{platform.system().lower()}:~$ "
 
 # Get all possible drive letters (A-Z)
 available_drives = [f"{d}:" for d in string.ascii_uppercase if os.path.exists(f"{d}:")]

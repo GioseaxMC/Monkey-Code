@@ -157,7 +157,8 @@ def run(command):
                     shutil.copy(f"{g.themes_path}/settings.json", f"{g.themes_path}/{args[1]}.json")
                 case "list":
                     console.push("== Available themes ==")
-                    console.push("set load "+("\nset load ".join(os.listdir(g.themes_path))+"\n").replace(".json\n", "\n"))
+                    # console.push("set load "+("\nset load ".join(os.listdir(g.themes_path))+"\n").replace(".json\n", "\n"))
+                    console.push("".join(["set load "+name.replace(".json","\n") for name in os.listdir(g.themes_path)])[:-1])
                     
                 case _:
                     set_settings(args)

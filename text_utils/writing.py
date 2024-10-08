@@ -7,6 +7,7 @@ import clipboard as cb
 from pprint import pprint as pp
 from datetime import datetime as dt
 import debug.debugger as debug
+import globals as g
 
 
 MOVEMENT = pg.K_UP, pg.K_DOWN, pg.K_LEFT, pg.K_RIGHT
@@ -263,20 +264,10 @@ def write(file: list[str], display: list[str], cursor: tuple[int, int], sele, se
             if selecting[0]:
                 remove_selection(file, sele, cursor)
                 selecting[0] = 0
-            if "..cmd:>" in file[cursor[1]]:
-                debug.run(file[cursor[1]].replace("..cmd:>",""))
+            if g.cmd_string in file[cursor[1]]:
+                debug.run(file[cursor[1]].replace(g.cmd_string,""))
             else:
                 _return(file, cursor, selecting, sele)
-
-        elif key == pg.K_HOME:
-            if c.ctrl():
-                cursor[1] = 0
-            cursor[0] = 0
-
-        elif key == pg.K_END:
-            if c.ctrl():
-                cursor[1] = len(display)-1
-            cursor[0] = len(display[cursor[1]])
 
         elif not c.ctrl() and key == pg.K_TAB:
             if selecting[0]:

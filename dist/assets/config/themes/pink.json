@@ -1,5 +1,5 @@
 {
-    "font size": 20,
+    "font size": 17,
     "font color": [
         255,
         255,
@@ -7,18 +7,18 @@
     ],
     "caret": "_",
     "caret color": [
-        255,
-        255,
-        255
+        200,
+        150,
+        200
     ],
     "bg color": [
-        100,
-        40,
-        100
+        75,
+        30,
+        75
     ],
     "scroll speed": 5,
     "scroll interpolation": 1,
-    "caret interpolation": 1,
+    "caret interpolation": 2,
     "highlight": 1,
     "consoleLen": 200,
     "consoleLines": 10

@@ -5,7 +5,7 @@
     },
     {
         "keyword" : "\\{([^}]*)\\}",
-        "color" : [220,100,220]
+        "color" : [248,38,113]
     },
     {
         "keyword" : "f(?=\\\")",
@@ -21,7 +21,7 @@
     },
     {
         "keyword" : "\\w+(?=\\()",
-        "color" : [100,220,100]
+        "color" : [166,226,46]
     },
     {
         "keyword" : "[(){}[\\]]",
@@ -29,15 +29,15 @@
     },
     {
         "keyword" : "(?<=#.*?\\b)TODO(?=\\b)",
-        "color" : [220,100,220]
+        "color" : [248,38,113]
     },
     {
         "keyword" : "=|-|\\+|\\*|/|<|>|\\b(False|None|True|and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield|async|await)\\b",
-        "color" : [220,100,220]
+        "color" : [248,38,113]
     },
     {
         "keyword" : "\\b\\d+\\b",
-        "color" : [100,100,220]
+        "color" : [175,125,230]
     },
     {
         "color" : [200,150,255],
