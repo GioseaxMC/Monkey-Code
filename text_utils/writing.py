@@ -213,20 +213,22 @@ def _backspace(file, cursor, selecting, sele):
         if c.ctrl():
             before, after = file[cursor[1]][:max(0, cursor[0])], file[cursor[1]][cursor[0]:]
             if before:
+                cursor0 = cursor[0]
                 if before.isspace():
                     before = ""
-                    cursor[0] = 0
+                    cursor0 = 0
                 while True:
                     if before:
                         before = before[:-1]
-                        cursor[0] -= 1
-                        if before and before[-1] in " ()[]{}.,-+/*<>":
+                        cursor0 -= 1
+                        if before and before[-1] in " \"()[]{}.,-+/*<>":
                             break
                         else:
                             ...
                     else:
                         break
                 set_line(file, cursor[1], before+after, cursor)
+                cursor[0] = cursor0
             else:
                 cursor[0] -= 1
         else:
