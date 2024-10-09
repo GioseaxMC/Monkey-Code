@@ -8,17 +8,16 @@
         "color" : [100,100,100]
     },
     {
-        "keyword" : "\\b(int|float|double|bool|string|char|void)\\b"
-        ,
-        "color" : [100,220,220]
-    },
-    {
         "keyword" : "#.*",
         "color" : [248,38,113]
     },
     {
         "color" : [220,220,100],
         "keyword" : "\"([^\"]*)\""
+    },
+    {
+        "keyword" : "\\b(int|float|double|bool|string|char|void)\\b",
+        "color" : [100,220,220]
     },
     {
         "keyword" : "=|-|\\+|\\*|/|<|>|!|\\b(auto|break|case|char|class|const|continue|default|delete|do|double|else|enum|extern|float|for|goto|if|inline|int|long|namespace|new|operator|private|protected|public|register|return|short|signed|sizeof|static|struct|switch|template|this|throw|try|typedef|union|unsigned|virtual|void|volatile|while|bool|friend|inline|constexpr|override|final)\\b",
