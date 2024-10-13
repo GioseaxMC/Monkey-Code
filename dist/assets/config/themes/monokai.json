@@ -5,11 +5,11 @@
         255,
         255
     ],
-    "caret": "_",
+    "caret": "|",
     "caret color": [
         255,
-        255,
-        255
+        200,
+        0
     ],
     "bg color": [
         39,
@@ -18,7 +18,7 @@
     ],
     "scroll speed": 5,
     "scroll interpolation": 1,
-    "caret interpolation": 1,
+    "caret interpolation": 2,
     "highlight": 1,
     "consoleLen": 200,
     "consoleLines": 10

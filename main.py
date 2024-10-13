@@ -291,6 +291,21 @@ def load_settings(initializing = 0):
         cons.MAX_LINES = s["consoleLines"]
     cons.init(CENTER, WIDTH, HEIGHT, bg)
 
+def draw_caret():
+    if CARET == "|":
+        height = CURSOR_DISPLAY_POSITION[1]+MARGINS[1]-DISPLAY_CAMERA_POSITION[1] #+FONT_SIZE/3
+        width = CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0]-font.size("-")[0]//2
+    else:
+        height = CURSOR_DISPLAY_POSITION[1]+MARGINS[1]-DISPLAY_CAMERA_POSITION[1]+FONT_SIZE/3
+        width = CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0]
+    if height < cons.bar.pos_Y-font.get_linesize()-12:
+        c.text(
+            CARET,
+            (width, height),
+            color = CARET_COLOR,
+            font = font,
+    )
+
 font_small = pg.Font(f"{g.assets_path}/font.ttf", 20)
 db.load_settings = load_settings
 
@@ -433,14 +448,7 @@ while c.loop(FPS, bg):
                 u.save(FILE, FILE_CONTENT)
                 open_file(dir_files[dir_index])
 
-        height = CURSOR_DISPLAY_POSITION[1]+MARGINS[1]+FONT_SIZE/3-DISPLAY_CAMERA_POSITION[1]
-        if height < cons.bar.pos_Y-font.get_linesize()-12:
-            c.text(
-                CARET,
-                (CURSOR_DISPLAY_POSITION[0]+MARGINS[0]-DISPLAY_CAMERA_POSITION[0], height),
-                color = CARET_COLOR,
-                font = font,
-        )
+        draw_caret()
 
         DEBUG += c.key_clicked(pg.K_F3)
         DEBUG = DEBUG % 3
