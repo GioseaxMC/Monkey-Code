@@ -115,8 +115,9 @@ def _return(file, cursor, selecting, sele):
         temp_before = temp_before[4:]
     del temp_before
     if before:
-        insert_line(file, cursor[1]+1, (("    "*(tabs+1)) if before[-1] == ":" else "    "*tabs)+file[cursor[1]][cursor[0]:], cursor)
-        cursor[0] = 4*(tabs+1) if before[-1] == ":" else 4*tabs
+        insert_line(file, cursor[1]+1, (("    "*(tabs+1)) if before[-1] in ":" else "    "*tabs)+file[cursor[1]][cursor[0]:], cursor)
+        cursor[0] = 4*(tabs+1) if before[-1] in ":" else 4*tabs
+            
     else:
         insert_line(file, cursor[1]+1, file[cursor[1]][cursor[0]:], cursor)
     set_line(file, cursor[1], before, cursor)

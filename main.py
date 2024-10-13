@@ -301,6 +301,8 @@ CURSOR_POSITION = (0,0)
 
 def open_file(file):
     global SELECTION, selecting
+    if ".exe" in file:
+        file = "console"
     SELECTION = [[0,0],[0,0]]
     selecting = 0
     history.clear()
@@ -319,10 +321,25 @@ def open_file(file):
                 CURSOR_POSITION = [len(FILE_CONTENT[-1]),len(FILE_CONTENT)]
         else:
             if dir_name := os.path.dirname(file):
-                os.mkdir(dir_name)
+                try:
+                    os.mkdir(dir_name)
+                except FileExistsError:
+                    ...
             with open(file, "w") as fp:
-                FILE_CONTENT = ["",]
-                CURSOR_POSITION = [0,0]
+                if file_extention == "cpp":
+                    FILE_CONTENT = [
+                        "#include <iostream>",
+                        "#include <windows.h>",
+                        "",
+                        "using namespace std;",
+                        "",
+                        "int main(void){",
+                        "    system(\"pause\");",
+                        "}",
+                    ]
+                else:
+                    FILE_CONTENT = ["",]
+            CURSOR_POSITION = [len(FILE_CONTENT[-1]),len(FILE_CONTENT)]
 
         markup_json = f"{g.markups_path}/{file_extention}.json"
 
