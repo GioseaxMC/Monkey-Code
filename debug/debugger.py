@@ -167,4 +167,3 @@ def run(command):
         case _:
             open_file("console")
 
-

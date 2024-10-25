@@ -3,6 +3,7 @@ import sys
 from text_utils import utils as u
 import string
 import platform
+import regex
 
 cmd_string = f"{os.getlogin()}@{platform.system().lower()}:~$ "
 
@@ -28,3 +29,9 @@ markups_path = f"{os.path.dirname(app_path)}/assets/config/markups"
 themes_path = f"{os.path.dirname(app_path)}/assets/config/themes"
 config_path = f"{os.path.dirname(app_path)}/assets/config"
 assets_path = f"{os.path.dirname(app_path)}/assets"
+
+token_dels = " ()[]{}.,-+/*<>"
+
+splitter = f"([{regex.escape(token_dels)}])"
+
+print("SPLITTER:",splitter)

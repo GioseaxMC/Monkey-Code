@@ -10,6 +10,7 @@ import debug.console as cons
 import sys
 import os
 import globals as g
+import regex
 
 NAME = "Monkey Code"
 
@@ -47,11 +48,13 @@ def update_sizes():
     global WIDTH, HEIGHT, CENTER, MARGINS
     WIDTH, HEIGHT = c.screen_size()
     CENTER = WIDTH//2, HEIGHT/2
-    MARGINS = WIDTH*.10, 100
+    MARGINS = WIDTH*.05, 100
 
 def handle_cursor_movement():
     global ACTUAL_POSITION, CURSOR_POSITION, CURSOR_DISPLAY_POSITION, SELECTION, selecting, selecting_file, hidden_cursor_x
     
+    
+
     #handle selection logic
     if selecting_file:
         return
@@ -83,26 +86,48 @@ def handle_cursor_movement():
                 selecting = 1
                 SELECTION[0] = CURSOR_POSITION.copy()
 
-    if offset and not moved:
+    if offset and not moved: # this is a worth less comment ()[]{}-.;-+/
         if c.ctrl():
             is_at_start = CURSOR_POSITION[0] <= 0
-            CURSOR_POSITION[0] += offset
+            # CURSOR_POSITION[0] += offset
             try:
                 _is_space_start = FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]].isspace()
             except IndexError:
                 _is_space_start = 0
-            if not CURSOR_POSITION[0]:
-                CURSOR_POSITION[0] -= 1
-            else:
-                while True:
-                    CURSOR_POSITION[0] += offset
-                    try:
-                        if CURSOR_POSITION[0] < 0 or CURSOR_POSITION[0] >= len(display[CURSOR_POSITION[1]]) or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]+min(0,offset)].isspace() != _is_space_start or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]] in "()[]{}.,-+/*<>":
-                            if not is_at_start:
-                                CURSOR_POSITION[0] = max(0, CURSOR_POSITION[0])
-                            break
-                    except IndexError:
-                        break
+            
+            # -- move to the next | previous token
+            
+            before = FILE_CONTENT[CURSOR_POSITION[1]][:CURSOR_POSITION[0]]
+            after = FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]:]
+
+            try:
+                if offset >= 0:
+                    if after.isspace():
+                        CURSOR_POSITION[0] += len(after) + 1
+                    else:
+                        tokens = regex.split(g.splitter, after)
+                        tokens = list(filter(lambda x: x not in (""," "), tokens))
+                        print(tokens)
+                        CURSOR_POSITION[0] += after.find(tokens[0]) + len(tokens[0])
+                else:
+                    if before.isspace():
+                        CURSOR_POSITION[0] -= len(before)
+                    else:
+                        tokens = regex.split(g.splitter, before)
+                        tokens = list(filter(lambda x: x not in (""," "), tokens))
+                        print(tokens)
+                        CURSOR_POSITION[0] = before.rfind(tokens[-1])
+            except IndexError:
+                CURSOR_POSITION[0] += offset
+            # while True:
+            #     CURSOR_POSITION[0] += offset
+            #     try:
+            #         if CURSOR_POSITION[0] < 0 or CURSOR_POSITION[0] >= len(display[CURSOR_POSITION[1]]) or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]+min(1,offset)].isspace() != _is_space_start or FILE_CONTENT[CURSOR_POSITION[1]][CURSOR_POSITION[0]] in "()[]{}.,-+/*<>":
+            #             if not is_at_start:
+            #                 CURSOR_POSITION[0] = max(0, CURSOR_POSITION[0])
+            #             break
+            #     except IndexError:
+            #         break
         else:
             CURSOR_POSITION[0] += offset
         hidden_cursor_x = CURSOR_POSITION[0]
