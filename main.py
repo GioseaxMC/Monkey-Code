@@ -144,7 +144,7 @@ def handle_cursor_movement():
         CURSOR_POSITION[0] = len(display[CURSOR_POSITION[1]])
         hidden_cursor_x = CURSOR_POSITION[0]
 
-    
+
     if c.ctrl() and c.key_clicked("a"):
         selecting = 1
         SELECTION[0] = [0,0]
@@ -300,7 +300,7 @@ def load_settings(initializing = 0):
         s = json.load(fp)
     with open(f"{g.themes_path}/settings.json", "r") as fp:
         s.update(json.load(fp))
-    FONT_SIZE = max(5, s["font size"])
+    FONT_SIZE = max(1, s["font size"])
     CARET = s["caret"]
     CARET_COLOR = s["caret color"]
     CARET_INTERPOLATION = max(1, s["caret interpolation"])
