@@ -6,9 +6,9 @@ import os
 MAX_LENGHT = 150
 MAX_LINES = 32
 
-c.pygame.font.init()
+c.pg.font.init()
 
-font = c.pygame.Font(f"{g.assets_path}\\font.ttf",14)
+font = c.pg.Font(f"{g.assets_path}\\font.ttf",14)
 line_size = font.get_linesize()
 bar: c.sprite
 do_update = 0

@@ -1,7 +1,7 @@
 import pygame_canvas as c
 import regex as re
 from pprint import pprint as pp
-from pygame_canvas import pygame as pg
+from pygame_canvas import pg
 import debug.console as cons
 
 default_color = [200, 200, 200]

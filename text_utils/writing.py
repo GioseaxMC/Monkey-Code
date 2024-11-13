@@ -1,5 +1,5 @@
 import pygame_canvas as c
-from pygame_canvas import pygame as pg
+from pygame_canvas import pg
 import text_utils.utils as s
 import text_utils.closings as close
 from copy import copy

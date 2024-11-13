@@ -1,5 +1,5 @@
 import pygame_canvas as c
-from pygame_canvas import pygame as pg
+from pygame_canvas import pg
 import text_utils.writing as w
 import text_utils.utils as u
 import text_utils.interactions as cl
@@ -347,6 +347,7 @@ def open_file(file):
     selecting = 0
     history.clear()
     global FILE_CONTENT, CURSOR_POSITION, FILE, file_extention, interactions, colors, hidden_cursor_x
+    CURSOR_POSITION = [0,0]
     with open(f"{g.markups_path}/_base.json", "r") as fp:
         colors = json.load(fp)
         _base_colors = colors.copy()
@@ -358,7 +359,6 @@ def open_file(file):
                 FILE_CONTENT = [line.replace("\n","") for line in fp.readlines()]
                 if not FILE_CONTENT:
                     FILE_CONTENT = ["",]
-                CURSOR_POSITION = [len(FILE_CONTENT[-1]),len(FILE_CONTENT)]
         else:
             if dir_name := os.path.dirname(file):
                 try:
@@ -379,7 +379,6 @@ def open_file(file):
                     ]
                 else:
                     FILE_CONTENT = ["",]
-            CURSOR_POSITION = [len(FILE_CONTENT[-1]),len(FILE_CONTENT)]
 
         markup_json = f"{g.markups_path}/{file_extention}.json"
 
