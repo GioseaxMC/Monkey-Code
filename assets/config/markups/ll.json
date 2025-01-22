@@ -1,0 +1,50 @@
+[
+    {
+        "keyword": ";.*",
+        "color": [100, 100, 100]  
+    },
+    {
+        "keyword": "(?<=;.*?\\b)TODO(?=\\b)",
+        "color": [248, 38, 113]
+    },
+    {
+        "keyword": "@[_a-zA-Z\\d$._]+",
+        "color": [166, 226, 46]  
+    },
+    {
+        "keyword": "%[a-zA-Z_][a-zA-Z0-9._]*",
+        "color": [248, 38, 113]  
+    },
+    {
+        "keyword": "i\\d+|float|double|void|ptr",
+        "color": [100, 220, 220]  
+    },
+    {
+        "keyword": "\\b(add|sub|mul|div|shl|shr|and|or|xor|alloca|load|store|icmp|fcmp|call|ret|br|phi|getelementptr|bitcast|select)\\b",
+        "color": [248, 38, 113]  
+    },
+    {
+        "keyword": "\\b(true|false|null|undef|zeroinitializer|poison|blockaddress|c)\\b",
+        "color": [175, 125, 230]  
+    },
+    {
+        "keyword": "[-+*/=!<>&|]",
+        "color": [230, 230, 0]  
+    },
+    {
+        "keyword": "\\b\\d+\\b",
+        "color": [175, 125, 230]  
+    },
+    {
+        "keyword": "\\b(local_unnamed_addr|global|private|internal|linkonce|weak|common|appending|dllimport|dllexport|extern_weak|available_externally|thread_local|default|hidden|protected|constant|align|volatile|nuw|nsw|exact|fast|nofastmath|nnan|ninf|ninftrap|exact|noalias|nonnull|dereferenceable|inbounds|nounwind|readonly|readnone|inreg|zeroext|signext|alignstack|uwtable|nonnull|tail|musttail)\\b",
+        "color": [248, 38, 113]  
+    },
+    {
+        "keyword": "\\w+(?=\\()",
+        "color": [166, 226, 46]  
+    },
+    {
+        "keyword": "[(){}[\\]]",
+        "color": [230, 230, 0]  
+    }
+]
